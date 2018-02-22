@@ -45,11 +45,11 @@
         <script src="static/js/simpleheat.js"></script> -->
         <!-- <script src="static/js/db_data.js"></script> -->
 
+        <link rel="stylesheet" type="text/css"href="static/css/material-kit.css" >
+
         {% assets "css" %}
           <link href="{{ ASSET_URL }}" rel="stylesheet">
         {% endassets %}
-
-        <link rel="stylesheet" type="text/css"href="static/css/material-kit.css" >
 
         <!--     Fonts and icons     -->
         <!-- <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons" /> -->
@@ -84,20 +84,20 @@
                 <li class="nav-item {% block index %}{% endblock %}">
                   <a class= "nav-link" href="{{ url_for('index') }}">Home</a><span class="sr-only">(current)</span>
                 </li>
-                <!-- <li class="nav-item {% block project %}{% endblock %}">
-                  <a class= "nav-link" href="{{ url_for('project') }}">Projects</a>
-                </li> -->
-                <li class="nav-item {% block team %}{% endblock %}">
-                  <a class= "nav-link" href="{{ url_for('team') }}">Team</a>
+                <li class="nav-item {% block airu_sensor %}{% endblock %}">
+                  <a class= "nav-link" href="{{ url_for('airu_sensor') }}">FAQ: Visualization + AirU Sensor</a>
                 </li>
                 <li class="nav-item {% block request_sensor %}{% endblock %}">
                   <a class= "nav-link" href="{{ url_for('request_sensor') }}">Request a Sensor</a>
                 </li>
-                <li class="nav-item {% block airu_sensor %}{% endblock %}">
-                  <a class= "nav-link" href="{{ url_for('airu_sensor') }}">AirU Sensor</a>
+                <li class="nav-item {% block team %}{% endblock %}">
+                  <a class= "nav-link" href="{{ url_for('team') }}">Team</a>
                 </li>
                 <li class="nav-item {% block newsroom %}{% endblock %}">
                   <a class= "nav-link" href="{{ url_for('newsroom') }}">Newsroom</a>
+                </li>
+                <li class="nav-item {% block about %}{% endblock %}">
+                  <a class= "nav-link" href="{{ url_for('about') }}">About</a>
                 </li>
               </ul>
             </div>
@@ -110,13 +110,13 @@
         <!-- </div> -->
 
         <!-- Footer -->
-        <footer class="py-5 bg-dark">
+        <!-- <footer class="py-5 bg-dark">
             <div class="container">
                 <p class="m-0 text-center text-white">Copyright &copy; AQ&amp;U 2017</p>
                 </br>
                 <p class="m-0 text-center text-white">Funded By <img src="./static/img/NSFlogo.png" height="50px"> &emsp; and &emsp; <img src="./static/img/nih-logo-nav.png" height="40px"></p>
             </div>
-        </footer>
+        </footer> -->
 
         <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
         <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script> -->

@@ -21,60 +21,11 @@
 {% block body %}
 {% block index %}active{% endblock %}
 
-  <header>
-    <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
-      <ol class="carousel-indicators">
-        <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
-        <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
-        <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
-      </ol>
-      <div class="carousel-inner" role="listbox">
-        <!-- Slide One -->
-        <div class="carousel-item active" style="background-image: url('./static/img/bad_air_1610.jpg')">
-            <div class="carousel-caption">
-                <div class="col-md-15">
-                    <img src="./static/img/aqu-3.png" height="217" width="700">
-                    <h2 class=captionAQ><strong>Exploring Salt Lake City's Air Quality.</strong> </h2>
-                    <br />
-                </div>
-            </div>
-        </div>
-        <!-- Slide Two -->
-        <div class="carousel-item" style="background-image: url('./static/img/sensor_image_1610.jpg')">
-            <div class="carousel-caption">
-                <div class="col-md-15">
-                    <img src="./static/img/aqu-3.png" height="217" width="700">
-                    <h2> <strong>Exploring Salt Lake City's Air Quality.</strong> </h2>
-                    <br />
-                </div>
-          </div>
-        </div>
-        <!-- Slide Three - Set the background image for this slide in the line below -->
-        <div class="carousel-item" style="background-image: url('./static/img/Wasatch-Front-1610.jpg')">
-            <div class="carousel-caption">
-                <div class="col-md-15">
-                  <img src="./static/img/aqu-3.png" height="217" width="700">
-                  <h2> <strong>Exploring Salt Lake City's Air Quality.</strong> </h2>
-                  <br />
-              </div>
-          </div>
-        </div>
-      </div>
-      <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
-        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-        <span class="sr-only">Previous</span>
-      </a>
-      <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
-        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-        <span class="sr-only">Next</span>
-      </a>
-    </div>
-  </header>
-
-  <div class="main main-raised">
+  <div id="mainpage">
+  <!-- <div class="main main-raised"> -->
 
   <!-- Page Content -->
-  <section class="py-5" id="about">
+  <!-- <section class="py-5" id="about">
     <div class="container">
       <h2 class="title inTheCenter">Project</h2>
       <p class='description'>
@@ -94,11 +45,11 @@
 
           This work is generously funded by grants from the National Science Foundation and the National Institutes of Health.
       </p>
-  </section>
+  </section> -->
 
-  <section class="py-5" id="sensorMap">
-      <div class="container">
-          <h2 class="title inTheCenter">Visualization</h2>
+  <!-- <section class="py-5" id="sensorMap"> -->
+      <!-- <div class="container"> -->
+          <!-- <h2 class="title inTheCenter">Visualization</h2>
           <div>
             <p class='description'>
               The following visualization consists of two parts a map visualization and a timeline visualization just below the map. It is best viewed using Google Chrome, Safari, or Firefox.
@@ -119,102 +70,62 @@
             <p class='description'>
               One caveat to be noted is that to be able to compare airU data and Purple Air data in the same graph we applied calibration using the data from the Winter 2017 for both airU and Purple Air sensors. The Purple Air sensor model 1003 is calibrated within the range of 0 to 90 µg/m<sup>3</sup>. The Purple Air sensor model 5003 is calibrated within the range of 0 to 60 µg/m<sup>3</sup>. And finally the airU sensors are calibrated within the range of 0 to 200 µg/m<sup>3</sup>.
             </p>
-          </div>
+          </div> -->
           <div id="SLC-map">
               <!-- <script src="static/js/map_reconfigure.js"></script> -->
+
+            <div id="timeline">
+                <svg width="100%">
+                    <g id="colorBands"></g>
+                    <g id="lines"></g>
+                    <g class="x axis"></g>
+                    <text class="x label"></text>
+                    <g class="y axis"></g>
+                    <text class="y label"></text>
+                    <g class="focus" transform="translate(-100,-100)">
+                        <circle r="3.5"></circle>
+                        <text y="-10"></text>
+                    </g>
+                    <g class="dateFocus" transform="translate(-100,-100)">
+                        <!-- <circle r="3.5"></circle> -->
+                        <rect></rect>
+                        <!-- <text y="10"></text> -->
+                        <text id='focusDate'></text>
+                        <text id='focusTime'></text>
+                    </g>
+                    <g class = "voronoi">
+                </svg>
+                <div id="timelineControls">
+                  <input type="radio" id="timeRange_24h" name="timeRange" value="1" checked>
+                  <label for="timeRange_24h">past 24 hours</label>
+
+                  <input type="radio" id="timeRange_3d" name="timeRange" value="3">
+                  <label for="timeRange_3d">past 3 days</label>
+
+                  <input type="radio" id="timeRange_1w" name="timeRange" value="7">
+                  <label for="timeRange_1w">past week</label>
+
+                  <button id="clearDataButton" onclick="clearData()">Clear Data</button>
+
+                  <form id="sensorDataSearch">
+                    <div>
+                      <label for="sensorDataSearch">Show data for airU sensor with sensor ID:</label>
+                      <input type="search" id="sensorDataSearch" name="q" placeholder="S-A-XXX" required size="7" pattern="S-A-[0-9]{3}" aria-label="Search for the data of your airU sensor">
+                      <button><i class="fa fa-search"></i></button>
+                      <span class="validity"></span>
+                    </div>
+                  </form>
+                </div>
+                <div class="tooltip hidden">
+                  <p class="tooltipText">These are the available PM2.5 data sources.</p>
+                  <p class="tooltipText">Clicking a source name shows you which sensors belong to it on the map.</p>
+                </div>
+            </div>
           </div>
-          <div id="timeline">
-              <svg width="100%">
-                  <g id="colorBands"></g>
-                  <g id="lines"></g>
-                  <g class="x axis"></g>
-                  <text class="x label"></text>
-                  <g class="y axis"></g>
-                  <text class="y label"></text>
-                  <g class="focus" transform="translate(-100,-100)">
-                      <circle r="3.5"></circle>
-                      <text y="-10"></text>
-                  </g>
-                  <g class="dateFocus" transform="translate(-100,-100)">
-                      <!-- <circle r="3.5"></circle> -->
-                      <rect></rect>
-                      <!-- <text y="10"></text> -->
-                      <text id='focusDate'></text>
-                      <text id='focusTime'></text>
-                  </g>
-                  <g class = "voronoi">
-              </svg>
-              <div id="timelineControls">
-                <input type="radio" id="timeRange_24h" name="timeRange" value="1" checked>
-                <label for="timeRange_24h">past 24 hours</label>
-
-                <input type="radio" id="timeRange_3d" name="timeRange" value="3">
-                <label for="timeRange_3d">past 3 days</label>
-
-                <input type="radio" id="timeRange_1w" name="timeRange" value="7">
-                <label for="timeRange_1w">past week</label>
-
-                <button id="clearDataButton" onclick="clearData()">Clear Data</button>
-
-                <form id="sensorDataSearch">
-                  <div>
-                    <label for="sensorDataSearch">Show data for airU sensor with sensor ID:</label>
-                    <input type="search" id="sensorDataSearch" name="q" placeholder="S-A-XXX" required size="7" pattern="S-A-[0-9]{3}" aria-label="Search for the data of your airU sensor">
-                    <button><i class="fa fa-search"></i></button>
-                    <span class="validity"></span>
-                  </div>
-                </form>
-              </div>
-              <div class="tooltip hidden">
-                <p class="tooltipText">These are the available PM2.5 data sources.</p>
-                <p class="tooltipText">Clicking a source name shows you which sensors belong to it on the map.</p>
-              </div>
-          </div>
-      </div>
-  </section>
-
-  <section class="py-5" id="request-sensor">
-      <div class="container box">
-          <h2 class="title inTheCenter boxed">Sensor Sign Up</h1>
-          <p class='description-centered boxed'>Interested in hosting a sensor (schools see below)? Sign up <a href="{{ url_for('request_sensor') }}">here.</a><p>
-          <p class='description-centered boxed'>Frequently asked questions are available <a href="{{ url_for('sensor_FAQ') }}">here</a>.</p>
-          </br>
-          <p class='description-centered boxed spaced'>Are you a <span class='schoolEmphasis'>school</span      > and interested in hosting a sensor?</br>There is more information and the people to contact <a href="https://airu.coe.utah.edu">here.</a><p>
-      </div>
-  </section>
+      <!-- </div> -->
+  <!-- </section> -->
 
 
-  <section class="py-5" id="mailinglist">
-      <div class="container">
-          <h2 class="title inTheCenter">Mailing List</h2>
-          <p class='description-centered'> Interested in learning more about what we are doing? Sign up for our <a href="{{ url_for('mailinglist') }}">mailing list</a>. Your information will only be used for AQ & U. </p>
-
-      </div>
-  </section>
-
-
-  <section class="py-5" id="contact">
-      <div class="container">
-          <h2 class="title inTheCenter">Contact Us</h2>
-          <p class='description-centered'>If you have a question, have a comment you can contact us under:</p>
-          <p class='description-centered'>Our email address is: <a href="mailto:contact-aqandu@sci.utah.edu">contact-aqandu@sci.utah.edu</a></p>
-      </div>
-  </section>
-
-
-  <section class="py-5" id="affiliations">
-      <div class="container">
-          <h2 class="title inTheCenter">Partners</h2>
-          <div class="affiliations">
-              <a href="http://www.utah.edu" target="_blank"><img class="logo" src="./static/img/ulogo2.png"></a>
-              <a href="https://www.ece.utah.edu" target="_blank"><img class="logo2" src="./static/img/ece_logo-01.png"></a>
-              <a href="https://www.che.utah.edu" target="_blank"><img class="logo3" src="./static/img/ChemE_logo.png"></a>
-              <a href="http://www.sci.utah.edu" target="_blank"><img class="logo" src="./static/img/scilogo.png"></a>
-              <a href="http://vdl.sci.utah.edu" target="_blank"><img class="logo" src="./static/img/vdl.png"></a>
-              <a href="https://sites.google.com/site/pegaillardon/" target="_blank"><img class="logo" src="./static/img/lnis-logo.png"></a>
-          </div>
-      </div>
-  </section>
   </div>
 {% endblock %}
 

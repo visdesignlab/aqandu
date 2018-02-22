@@ -1,7 +1,9 @@
 #SLC-map {
-  height: 500px;
+  position: absolute;
+
+  height: 100%;
   width: 100%;
-  margin-top: 20px;
+  /* margin-top: 40px; */
 }
 
 svg text {
@@ -162,7 +164,14 @@ input:valid ~ span:after {
 
 /* TIMELINE */
 #timeline {
-  margin-top: 10px;
+  /* margin-top: 10px; */
+  position: absolute;
+  display: block;
+  z-index: 1025;
+  width: 100%;
+  bottom: 0;
+  background-color: #ffffff;
+  height: 35%;
 }
 
 .legend {
@@ -257,8 +266,15 @@ input:valid ~ span:after {
   text-align: center;
 }
 
-.navbar{
+.navbar {
   margin-bottom: 0px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.navbar .navbar-nav > li > a {
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
 .main-raised{
