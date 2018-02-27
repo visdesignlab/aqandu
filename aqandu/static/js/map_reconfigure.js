@@ -23,7 +23,7 @@ const epaColors = ['green', 'yellow', 'orange', 'red', 'veryUnhealthyRed', 'haza
 
 const margin = {
   top: 10,
-  right: 0,
+  right: 50,
   bottom: 40,
   left: 50,
 };
@@ -924,7 +924,8 @@ function reGetGraphData(theID, theSensorSource, aggregation) {
 
   }).catch(function(err){
 
-      alert("error, request failed!");
+      $("#errorInformation").html(err['message'])
+      // alert("error, request failed!");
       console.log("Error: ", err)
   });
 

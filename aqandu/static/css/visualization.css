@@ -118,13 +118,13 @@ svg text {
   margin-left: 30px;
 }
 
-input:invalid ~ span:after {
+input:invalid ~ span.validity:after {
     content: '✖';
     padding-left: 5px;
     position: absolute:
 }
 
-input:valid ~ span:after {
+input:valid ~ span.validity:after {
     content: '✓';
     padding-left: 5px;
     position: absolute:
@@ -171,7 +171,7 @@ input:valid ~ span:after {
   width: 100%;
   bottom: 0;
   background-color: #ffffff;
-  height: 35%;
+  height: 42%;
 }
 
 .legend {

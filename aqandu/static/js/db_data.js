@@ -22,6 +22,29 @@ function generateURL(anEndpoint, route, parameters) { // eslint-disable-line no-
   return url;
 }
 
+// var promiseObj = new Promise(function(resolve, reject){
+//    var xhr = new XMLHttpRequest();
+//    xhr.open(methodType, url, true);
+//    xhr.send();
+//    xhr.onreadystatechange = function(){
+//    if (xhr.readyState === 4){
+//       if (xhr.status === 200){
+//          console.log("xhr done successfully");
+//          var resp = xhr.responseText;
+//          var respJson = JSON.parse(resp);
+//          resolve(respJson);
+//       } else {
+//          reject(xhr.status);
+//          console.log("xhr failed");
+//       }
+//    } else {
+//       console.log("xhr processing going on");
+//    }
+// }
+// console.log("request sent succesfully");
+// });
+// return promiseObj;
+// }
 function getDataFromDB(anURL) { // eslint-disable-line no-unused-vars
   return new Promise((resolve, reject) => {
     const method = 'GET';
@@ -31,19 +54,28 @@ function getDataFromDB(anURL) { // eslint-disable-line no-unused-vars
     request.open(method, anURL, async); // true => request is async
 
     // If the request returns succesfully, then resolve the promise
-    request.onreadystatechange = function processingResponse() {
-      if (request.readyState === 4 && request.status === 200) {
-        const response = JSON.parse(request.responseText);
-        resolve(response);
+    request.onreadystatechange = function () {
+      if (request.readyState === 4) {
+        if (request.status === 200) {
+          const response = JSON.parse(request.responseText);
+          resolve(response);
+        } else {
+          console.log(request.responseText)
+          reject(JSON.parse(request.responseText));
+        }
+      } else {
+        console.log("xhr processing going on");
       }
-
-      // If request has an error, then reject the promise
-      request.onerror = function showWarning(e) {
-        console.log('Something went wrong....');
-        reject(e);
-      };
-    };
+    }
 
     request.send();
+
+    // // If request has an error, then reject the promise
+    // request.onerror = function showWarning(e) {
+    //   console.log('Something went wrong....');
+    //   reject(e);
+    // };
+
+    console.log("request sent succesfully");
   });
 }
