@@ -193,8 +193,8 @@ function setUp(){
   svg.select(".x.label")      // text label for the x axis
      .attr("class", "timeline")
      .attr("transform", "translate(" + (width / 2) + " ," + (height + margin.bottom) + ")")
-     .style("text-anchor", "middle")
-     .text("Time");
+     .style("text-anchor", "middle");
+     // .text("Time");
 
   svg.select(".y.axis") // Add the Y Axis
      .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
@@ -217,6 +217,24 @@ function getColorBandPath(yStart, yEnd) {
          "L" + (margin.left + x(x.domain()[1])) + "," + (margin.top + y(yEnd)) +
          "L" + (margin.left + x(x.domain()[1])) + "," + (margin.top + y(yStart));
 }
+
+
+// Create additional control placeholders
+function addControlPlaceholders(map) {
+	var corners = map._controlCorners;
+  var l = 'leaflet-';
+  var container = map._controlContainer;
+
+  function createCorner(vSide, hSide) {
+    var className = l + vSide + ' ' + l + hSide;
+
+    corners[vSide + hSide] = L.DomUtil.create('div', className, container);
+  }
+
+  createCorner('verticalcenter', 'left');
+  createCorner('verticalcenter', 'right');
+}
+
 
 /**
  * [setupMap description]
@@ -242,7 +260,17 @@ function setupMap() {
   slcMap.on('focus', () => { slcMap.scrollWheelZoom.enable(); });
   slcMap.on('blur', () => { slcMap.scrollWheelZoom.disable(); });
 
-  const legend = L.control({position: 'bottomright'});
+
+  addControlPlaceholders(slcMap);
+
+
+  // // You can also put other controls in the same placeholder.
+  // L.control.scale({position: 'verticalcenterright'}).addTo(map);
+
+
+  const legend = L.control({position: 'verticalcenterright'});
+
+
 
   legend.onAdd = function () {
     this._div = L.DomUtil.create('div', 'legend');
@@ -333,8 +361,11 @@ function setupMap() {
 
   legend.addTo(slcMap);
 
+  // Change the position of the Zoom Control to a newly created placeholder.
+  slcMap.zoomControl.setPosition('verticalcenterright');
+
   // adding color legend
-  var colorLegend = L.control({position: 'bottomleft'});
+  var colorLegend = L.control({position: 'verticalcenterright'});
 
 	colorLegend.onAdd = function () {
 

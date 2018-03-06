@@ -171,8 +171,28 @@ input:valid ~ span.validity:after {
   width: 100%;
   bottom: 0;
   background-color: #ffffff;
-  height: 42%;
+  height: 35%;
 }
+
+#timelineControls {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+}
+
+
+.leaflet-verticalcenter {
+    position: absolute;
+    z-index: 1000; /* <-- new line! */
+    top: 30%;
+    transform: translateY(-30%);
+    padding-top: 10px;
+}
+
+.leaflet-verticalcenter .leaflet-control {
+    margin-bottom: 10px;
+}
+
 
 .legend {
   box-shadow: 0 0 15px rgba(0,0,0,0.2);
