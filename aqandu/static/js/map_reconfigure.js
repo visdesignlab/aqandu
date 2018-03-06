@@ -220,6 +220,7 @@ function getColorBandPath(yStart, yEnd) {
 
 
 // Create additional control placeholders
+// https://stackoverflow.com/questions/33614912/how-to-locate-leaflet-zoom-control-in-a-desired-position
 function addControlPlaceholders(map) {
 	var corners = map._controlCorners;
   var l = 'leaflet-';

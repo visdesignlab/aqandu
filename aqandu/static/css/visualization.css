@@ -166,12 +166,13 @@ input:valid ~ span.validity:after {
 #timeline {
   /* margin-top: 10px; */
   position: absolute;
+  padding: 0px 5px 0px;
   display: block;
   z-index: 1025;
   width: 100%;
   bottom: 0;
   background-color: #ffffff;
-  height: 35%;
+  height: 36%;
 }
 
 #timelineControls {
