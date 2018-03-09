@@ -162,6 +162,12 @@ input:valid ~ span.validity:after {
   display: none;
 }
 
+.closeButton {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+}
+
 /* TIMELINE */
 #timeline {
   /* margin-top: 10px; */

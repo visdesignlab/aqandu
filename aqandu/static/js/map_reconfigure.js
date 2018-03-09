@@ -46,65 +46,10 @@ let currentlySelectedDataSource = 'none';
 
 
 $(function() {
-  window.onload = window.onresize = function () {
+  $(document).ready(init);
+  window.onresize = init();
 
-    // deals with settiing the from date for the timeline when the radio button is changed
-    $('#timelineControls input[type=radio]').on('change', function() {
-      whichTimeRangeToShow = parseInt($('[name="timeRange"]:checked').val());
 
-      let newDate = new Date(today);  // use "today" as the base date
-      newDate.setDate(newDate.getDate() - whichTimeRangeToShow);
-      pastDate = newDate.toISOString().substr(0, 19) + 'Z';
-
-      // refresh x
-      x = d3.scaleTime().domain([new Date(pastDate), new Date(today)]);
-      setUp();
-
-      // which ID are there
-      let lineData = [];
-      lineArray.forEach(function(aLine) {
-        let theAggregation = getAggregation(whichTimeRangeToShow);
-        // if (whichTimeRangeToShow === 1) {
-        //   theAggregation = false;
-        // } else {
-        //   theAggregation = true;
-        // }
-
-        lineData.push({id: aLine.id, sensorSource: aLine.sensorSource, aggregation: theAggregation})
-      });
-
-      clearData(true);
-
-      lineData.forEach(function(aLine) {
-        reGetGraphData(aLine.id, aLine.sensorSource, aLine.aggregation);
-
-      })
-
-    });
-
-    $('#sensorDataSearch').on('submit', function(e) {
-        e.preventDefault();  //prevent form from submitting
-        let data = $("#sensorDataSearch :input").serializeArray();
-        console.log(data[0].value);
-
-        let anAggregation = getAggregation(whichTimeRangeToShow);
-        reGetGraphData(data[0].value, 'airu', anAggregation);
-
-        // if the sensor is visible on the map, mark it as selected
-        sensLayer.eachLayer(function(layer) {
-          if (layer.id === data[0].value) {
-            d3.select(layer._icon).classed('sensor-selected', true)
-          }
-        });
-    });
-
-    setUp();
-    // TODO: call the render function(s)
-    //  L.imageOverlay('overlay1.png', [[40.795925, -111.998256], [40.693031, -111.827190]], {
-    // 		opacity: 0.5,
-    // 		interactive: true,
-    // 	}).addTo(map);
-  }
 
   theMap = setupMap();
 
@@ -126,6 +71,67 @@ $(function() {
   // L.control.layers(null, overlayMaps).addTo(theMap);
 
 });
+
+
+function init() {
+
+  // deals with settiing the from date for the timeline when the radio button is changed
+  $('#timelineControls input[type=radio]').on('change', function() {
+    whichTimeRangeToShow = parseInt($('[name="timeRange"]:checked').val());
+
+    let newDate = new Date(today);  // use "today" as the base date
+    newDate.setDate(newDate.getDate() - whichTimeRangeToShow);
+    pastDate = newDate.toISOString().substr(0, 19) + 'Z';
+
+    // refresh x
+    x = d3.scaleTime().domain([new Date(pastDate), new Date(today)]);
+    setUp();
+
+    // which ID are there
+    let lineData = [];
+    lineArray.forEach(function(aLine) {
+      let theAggregation = getAggregation(whichTimeRangeToShow);
+      // if (whichTimeRangeToShow === 1) {
+      //   theAggregation = false;
+      // } else {
+      //   theAggregation = true;
+      // }
+
+      lineData.push({id: aLine.id, sensorSource: aLine.sensorSource, aggregation: theAggregation})
+    });
+
+    clearData(true);
+
+    lineData.forEach(function(aLine) {
+      reGetGraphData(aLine.id, aLine.sensorSource, aLine.aggregation);
+
+    })
+
+  });
+
+  $('#sensorDataSearch').on('submit', function(e) {
+      e.preventDefault();  //prevent form from submitting
+      let data = $("#sensorDataSearch :input").serializeArray();
+      console.log(data[0].value);
+
+      let anAggregation = getAggregation(whichTimeRangeToShow);
+      reGetGraphData(data[0].value, 'airu', anAggregation);
+
+      // if the sensor is visible on the map, mark it as selected
+      sensLayer.eachLayer(function(layer) {
+        if (layer.id === data[0].value) {
+          d3.select(layer._icon).classed('sensor-selected', true)
+        }
+      });
+  });
+
+  setUp();
+  // TODO: call the render function(s)
+  //  L.imageOverlay('overlay1.png', [[40.795925, -111.998256], [40.693031, -111.827190]], {
+  // 		opacity: 0.5,
+  // 		interactive: true,
+  // 	}).addTo(map);
+}
 
 
 function getAggregation(timeRange) {
@@ -261,8 +267,81 @@ function setupMap() {
   slcMap.on('focus', () => { slcMap.scrollWheelZoom.enable(); });
   slcMap.on('blur', () => { slcMap.scrollWheelZoom.disable(); });
 
-
+  // adding new placeholders for leaflet controls
   addControlPlaceholders(slcMap);
+
+
+  var reappearControl = L.control({position: 'verticalcenterright'});
+  reappearControl.onAdd = function () {
+
+    var reappearingButton = document.createElement('a');
+    reappearingButton.setAttribute('class', 'reappearingButton');
+
+    var i_reappearingButton = document.createElement('i');
+    i_reappearingButton.setAttribute('class', 'fas fa-info fa-2x');
+    reappearingButton.appendChild(i_reappearingButton);
+
+    return reappearingButton
+  }
+
+  reappearControl.addTo(slcMap);
+
+  $('.reappearingButton').hide();
+
+
+  // adding color legend
+  var colorLegend = L.control({position: 'verticalcenterright'});
+
+  colorLegend.onAdd = function () {
+
+    var div = L.DomUtil.create('div', 'colorLegend');
+    var labelContainer = L.DomUtil.create('div', 'labelContainer');
+
+    var closeButton = document.createElement('a');
+    closeButton.setAttribute('class', 'closeButton');
+
+    var i_closeButton = document.createElement('i');
+    i_closeButton.setAttribute('class', 'far fa-window-close fa-2x');
+    closeButton.appendChild(i_closeButton);
+
+    div.appendChild(labelContainer);
+    div.appendChild(closeButton);
+
+
+    var grades = [0, 12, 35.4, 55.4, 150.4, 250.4];
+    var colorLabels = [];
+    var from;
+    var to;
+
+    colorLabels.push("<span class='legendTitle'>PM2.5 levels:</span>");
+
+    for (var i = 0; i < grades.length; i++) {
+      from = grades[i];
+      to = grades[i + 1];
+
+      colorLabels.push(
+        '<label><i class="' + getColor(from + 1) + '"></i> ' +
+        // from + (to ? ' &ndash; ' + to + ' µg/m<sup>3</sup> ' : ' µg/m<sup>3</sup> +'));
+        (to ? from + ' &ndash; ' + to + ' µg/m<sup>3</sup></label>' : 'above ' + from + ' µg/m<sup>3</sup></label>'));
+    }
+
+    labelContainer.innerHTML = colorLabels.join('<br>');
+    return div;
+  };
+
+  colorLegend.addTo(slcMap);
+
+  $('.closeButton').on("click", function() {
+    console.log('hiding color legend');
+    $('.colorLegend').hide();
+    $('.reappearingButton').show();
+  });
+
+  $('.reappearingButton').on("click", function() {
+    console.log('showing color legend');
+    $('.colorLegend').show();
+    $('.reappearingButton').hide();
+  });
 
 
   // // You can also put other controls in the same placeholder.
@@ -270,8 +349,6 @@ function setupMap() {
 
 
   const legend = L.control({position: 'verticalcenterright'});
-
-
 
   legend.onAdd = function () {
     this._div = L.DomUtil.create('div', 'legend');
@@ -365,33 +442,7 @@ function setupMap() {
   // Change the position of the Zoom Control to a newly created placeholder.
   slcMap.zoomControl.setPosition('verticalcenterright');
 
-  // adding color legend
-  var colorLegend = L.control({position: 'verticalcenterright'});
 
-	colorLegend.onAdd = function () {
-
-		var div = L.DomUtil.create('div', 'colorLegend'),
-			grades = [0, 12, 35.4, 55.4, 150.4, 250.4],
-			colorLabels = [],
-			from, to;
-
-    colorLabels.push("<span class='legendTitle'>PM2.5 levels:</span>");
-
-		for (var i = 0; i < grades.length; i++) {
-			from = grades[i];
-			to = grades[i + 1];
-
-			colorLabels.push(
-				'<label><i class="' + getColor(from + 1) + '"></i> ' +
-        // from + (to ? ' &ndash; ' + to + ' µg/m<sup>3</sup> ' : ' µg/m<sup>3</sup> +'));
-        (to ? from + ' &ndash; ' + to + ' µg/m<sup>3</sup></label>' : 'above ' + from + ' µg/m<sup>3</sup></label>'));
-		}
-
-		div.innerHTML = colorLabels.join('<br>');
-		return div;
-	};
-
-	colorLegend.addTo(slcMap);
 
   return slcMap;
 }
