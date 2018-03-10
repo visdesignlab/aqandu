@@ -49,8 +49,6 @@ $(function() {
   $(document).ready(init);
   window.onresize = init();
 
-
-
   theMap = setupMap();
 
   drawSensorOnMap();
@@ -255,7 +253,7 @@ function setupMap() {
 
   // load a tile layer
   L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic2tpdHJlZSIsImEiOiJjajUyb2l0YzQwaHJwMnFwMTNhdGwxMGx1In0.V5OuKXRdmwjq4Lk3o8me1A', {
-// L.tileLayer('https://api.mapbox.com/styles/v1/oscarinslc/cjdy1fjlq1n9p2spe1f1dwvjp/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoib3NjYXJpbnNsYyIsImEiOiJjajZ3bG5kbnUxN2h3Mnd1aDdlOTJ6ZnUzIn0.fLYowxdcPCmZSLt51mG8tw', {
+  // L.tileLayer('https://api.mapbox.com/styles/v1/oscarinslc/cjdy1fjlq1n9p2spe1f1dwvjp/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoib3NjYXJpbnNsYyIsImEiOiJjajZ3bG5kbnUxN2h3Mnd1aDdlOTJ6ZnUzIn0.fLYowxdcPCmZSLt51mG8tw', {
 
     maxZoom: 18,
     id: 'mapbox.streets',
@@ -289,13 +287,14 @@ function setupMap() {
   $('.reappearingButton').hide();
 
 
-  // adding color legend
-  var colorLegend = L.control({position: 'verticalcenterright'});
+  // adding the legend
+  var theLegend = L.control({position: 'verticalcenterright'});
 
-  colorLegend.onAdd = function () {
+  theLegend.onAdd = function () {
 
-    var div = L.DomUtil.create('div', 'colorLegend');
-    var labelContainer = L.DomUtil.create('div', 'labelContainer');
+    // adding color legend
+    var legend = L.DomUtil.create('div', 'legend');
+    var colorLegend = L.DomUtil.create('div', 'colorLegend');
 
     var closeButton = document.createElement('a');
     closeButton.setAttribute('class', 'closeButton');
@@ -304,8 +303,8 @@ function setupMap() {
     i_closeButton.setAttribute('class', 'far fa-window-close fa-2x');
     closeButton.appendChild(i_closeButton);
 
-    div.appendChild(labelContainer);
-    div.appendChild(closeButton);
+    legend.appendChild(colorLegend);
+    legend.appendChild(closeButton);
 
 
     var grades = [0, 12, 35.4, 55.4, 150.4, 250.4];
@@ -325,40 +324,16 @@ function setupMap() {
         (to ? from + ' &ndash; ' + to + ' µg/m<sup>3</sup></label>' : 'above ' + from + ' µg/m<sup>3</sup></label>'));
     }
 
-    labelContainer.innerHTML = colorLabels.join('<br>');
-    return div;
-  };
+    colorLegend.innerHTML = colorLabels.join('<br>');
 
-  colorLegend.addTo(slcMap);
+    var hr = L.DomUtil.create('hr', 'theHR');
+    legend.appendChild(hr);
 
-  $('.closeButton').on("click", function() {
-    console.log('hiding color legend');
-    $('.colorLegend').hide();
-    $('.reappearingButton').show();
-  });
+    // adding data source legend
+    var datasourceLegend = L.DomUtil.create('div', 'datasourceLegend');
+    legend.appendChild(datasourceLegend);
 
-  $('.reappearingButton').on("click", function() {
-    console.log('showing color legend');
-    $('.colorLegend').show();
-    $('.reappearingButton').hide();
-  });
-
-
-  // // You can also put other controls in the same placeholder.
-  // L.control.scale({position: 'verticalcenterright'}).addTo(map);
-
-
-  const legend = L.control({position: 'verticalcenterright'});
-
-  legend.onAdd = function () {
-    this._div = L.DomUtil.create('div', 'legend');
-    this.update(this._div);
-    return this._div;
-  };
-
-  legend.update = function (thediv) {
-    // TODO: draw the legend
-    var d3div = d3.select(thediv);
+    var d3div = d3.select(datasourceLegend);
     var titleDataSource = d3div.append('span')
          .attr("class", "legendTitle")
          .text('Data sources:');
@@ -389,14 +364,14 @@ function setupMap() {
     var labels = d3div.selectAll('label').data(dataLabel);
     labels.exit().remove();
     var labelsEnter = labels.enter()
-                            .append('label')
-                            .attr("class", "sensorType");
+                           .append('label')
+                           .attr("class", "sensorType");
     labels = labels.merge(labelsEnter);
     labels.text(d => d);
 
     labels.on('click', d => {
       if (currentlySelectedDataSource != 'none') {
-        // element in sensor type legend has been clicked (was already selected) or another element has been selected
+      // element in sensor type legend has been clicked (was already selected) or another element has been selected
 
         d3.select('.clickedLegendElement').classed('clickedLegendElement', false)
         if (currentlySelectedDataSource === d) {
@@ -434,15 +409,106 @@ function setupMap() {
       }
     });
 
-    return thediv;
-  }
+    return legend;
+  };
 
-  legend.addTo(slcMap);
+  theLegend.addTo(slcMap);
+
+  $('.closeButton').on("click", function() {
+    console.log('hiding color legend');
+    $('.legend').hide();
+    $('.reappearingButton').show();
+  });
+
+  $('.reappearingButton').on("click", function() {
+    console.log('showing color legend');
+    $('.legend').show();
+    $('.reappearingButton').hide();
+  });
+
+
+  // // You can also put other controls in the same placeholder.
+  // L.control.scale({position: 'verticalcenterright'}).addTo(map);
+
+
+  // const legend = L.control({position: 'verticalcenterright'});
+  //
+  // legend.onAdd = function () {
+  //   this._div = L.DomUtil.create('div', 'legend');
+  //   this.update(this._div);
+  //   return this._div;
+  // };
+
+  // legend.update = function (thediv) {
+  //   // TODO: draw the legend
+  //   var d3div = d3.select(thediv);
+  //   var titleDataSource = d3div.append('span')
+  //        .attr("class", "legendTitle")
+  //        .text('Data sources:');
+  //
+  //
+  //
+  //   var dataLabel = ["airu", "PurpleAir", "Mesowest", "DAQ"];
+  //   var labels = d3div.selectAll('label').data(dataLabel);
+  //   labels.exit().remove();
+  //   var labelsEnter = labels.enter()
+  //                           .append('label')
+  //                           .attr("class", "sensorType");
+  //   labels = labels.merge(labelsEnter);
+  //   labels.text(d => d);
+  //
+  //   labels.on('click', d => {
+  //     if (currentlySelectedDataSource != 'none') {
+  //       // element in sensor type legend has been clicked (was already selected) or another element has been selected
+  //
+  //       d3.select('.clickedLegendElement').classed('clickedLegendElement', false)
+  //       if (currentlySelectedDataSource === d) {
+  //         // remove notPartOfGroup class
+  //         // remove colored-border-selected class
+  //         d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('notPartOfGroup', false);
+  //         d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('partOfGroup-border', false);
+  //
+  //         currentlySelectedDataSource = 'none'
+  //       } else {
+  //         // moved from one element to another wiuthout first unchecking it
+  //
+  //         d3.select(d3.event.currentTarget).classed('clickedLegendElement', true)
+  //
+  //         d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('notPartOfGroup', true);
+  //         d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('partOfGroup-border', false);
+  //         d3.select('#SLC-map').selectAll('.' + d + ':not(noColor)').classed('notPartOfGroup', false);
+  //         d3.select('#SLC-map').selectAll('.' + d + ':not(noColor)').classed('partOfGroup-border', true);
+  //
+  //         currentlySelectedDataSource = d
+  //       }
+  //
+  //     } else {
+  //       // add the notPartOfGroup class to all dots, then remove it for the ones that are actually notPartOfGroup
+  //       // remove partOfGroup-border for all dots and add it only for the selected ones
+  //
+  //       d3.select(d3.event.currentTarget).classed('clickedLegendElement', true)
+  //
+  //       d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('notPartOfGroup', true);
+  //       d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('partOfGroup-border', false);
+  //       d3.select('#SLC-map').selectAll('.' + d + ':not(noColor)').classed('notPartOfGroup', false);
+  //       d3.select('#SLC-map').selectAll('.' + d + ':not(noColor)').classed('partOfGroup-border', true);
+  //
+  //       currentlySelectedDataSource = d;
+  //     }
+  //   });
+    //
+    // return thediv;
+  // }
+  //
+  // legend.addTo(slcMap);
 
   // Change the position of the Zoom Control to a newly created placeholder.
   slcMap.zoomControl.setPosition('verticalcenterright');
 
-
+  slcMap.on("click", function(location) {
+    var clickLocation = location.latlng;
+    console.log(clickLocation);
+  })
 
   return slcMap;
 }
