@@ -105,8 +105,12 @@ svg text {
   font-size: 10pt;
   color: #555;
 
-  margin-right: 15px;
-  line-height: 32px;
+  margin: 0px 10px 10px 2px;
+  /* line-height: 32px; */
+}
+
+#search label {
+  margin: 0px;
 }
 
 #clearDataButton {
@@ -115,7 +119,7 @@ svg text {
   font-size: 10pt;
   color: #555;
 
-  margin-left: 30px;
+  margin: 0px 10px 0px 0px;
 }
 
 input:invalid ~ span.validity:after {
@@ -132,6 +136,13 @@ input:valid ~ span.validity:after {
 
 #clearDataButton:hover, #clearDataButton:active {
   text-decoration: underline #c00;
+}
+
+#errorInformation {
+  font-family: 'Open Sans',sans-serif;
+
+  font-size: 7pt;
+  color: #555;
 }
 
 /* Popup */
@@ -185,6 +196,8 @@ input:valid ~ span.validity:after {
   position: absolute;
   top: 15px;
   right: 20px;
+
+  padding: 5px;
 }
 
 
