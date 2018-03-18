@@ -179,6 +179,17 @@ input:valid ~ span.validity:after {
   right: 0px;
 }
 
+
+.aqu_icon {
+  background-color: #c00;
+  color: rgba(255,255,255,.5);
+  padding: 2px;
+}
+
+.aqu_icon:hover {
+  color: #fff;
+}
+
 /* TIMELINE */
 #timeline {
   /* margin-top: 10px; */
@@ -201,18 +212,29 @@ input:valid ~ span.validity:after {
 }
 
 
-.leaflet-verticalcenter {
+.leaflet-verticalcentertop {
     position: absolute;
     z-index: 1000; /* <-- new line! */
-    top: 30%;
-    transform: translateY(-30%);
+    top: 10%;
+    transform: translateY(-10%);
     padding-top: 10px;
 }
 
-.leaflet-verticalcenter .leaflet-control {
+.leaflet-verticalcentertop .leaflet-control {
     margin-bottom: 10px;
 }
 
+.leaflet-verticalcenterbottom {
+    position: absolute;
+    z-index: 1000; /* <-- new line! */
+    top: 50%;
+    transform: translateY(50%);
+    padding-top: 10px;
+}
+
+.leaflet-verticalcenterbottom .leaflet-control {
+    margin-bottom: 10px;
+}
 
 .legend {
   box-shadow: 0 0 15px rgba(0,0,0,0.2);

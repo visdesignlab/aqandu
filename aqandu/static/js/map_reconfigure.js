@@ -144,14 +144,14 @@ function getAggregation(timeRange) {
 /**
  * [setUp description]
  */
-function setUp(){
-  var div = d3.select("#timeline");
-  var bounds = div.node().getBoundingClientRect();
+function setUp() {
+  var timelineDIV = d3.select("#timeline");
+  var bounds = timelineDIV.node().getBoundingClientRect();
   var svgWidth = bounds.width;
   var svgHeight = 310;
   var width = svgWidth - margin.left - margin.right;
   var height = svgHeight - margin.top - margin.bottom;
-  var svg = div.select("svg") // sets size of svgContainer
+  var svg = timelineDIV.select("svg") // sets size of svgContainer
 
   x.range([0, width]);
   y.range([height, 0]);
@@ -212,6 +212,15 @@ function setUp(){
      .attr("dy", "1em")
      .style("text-anchor", "middle")
      .text("PM 2.5 µg/m\u00B3");
+
+  // disable map moving on timeline
+  document.getElementById('timeline').addEventListener('mouseover', function () {
+    theMap.dragging.disable();
+  });
+
+  document.getElementById('timeline').addEventListener('mouseout', function () {
+    theMap.dragging.enable();
+  });
 }
 
 
@@ -236,8 +245,11 @@ function addControlPlaceholders(map) {
     corners[vSide + hSide] = L.DomUtil.create('div', className, container);
   }
 
-  createCorner('verticalcenter', 'left');
-  createCorner('verticalcenter', 'right');
+  createCorner('verticalcentertop', 'left');
+  createCorner('verticalcentertop', 'right');
+
+  createCorner('verticalcenterbottom', 'left');
+  createCorner('verticalcenterbottom', 'right');
 }
 
 
@@ -269,14 +281,15 @@ function setupMap() {
   addControlPlaceholders(slcMap);
 
 
-  var reappearControl = L.control({position: 'verticalcenterright'});
+  var reappearControl = L.control({position: 'verticalcentertopright'});
   reappearControl.onAdd = function () {
 
-    var reappearingButton = document.createElement('a');
+    var reappearingButton = document.createElement('div');
     reappearingButton.setAttribute('class', 'reappearingButton');
 
     var i_reappearingButton = document.createElement('i');
-    i_reappearingButton.setAttribute('class', 'fas fa-info fa-2x');
+    // i_reappearingButton.setAttribute('class', 'fas fa-info fa-2x');
+    i_reappearingButton.setAttribute('class', 'aqu_icon fas fa-list fa-2x')
     reappearingButton.appendChild(i_reappearingButton);
 
     return reappearingButton
@@ -288,7 +301,7 @@ function setupMap() {
 
 
   // adding the legend
-  var theLegend = L.control({position: 'verticalcenterright'});
+  var theLegend = L.control({position: 'verticalcentertopright'});
 
   theLegend.onAdd = function () {
 
@@ -296,11 +309,11 @@ function setupMap() {
     var legend = L.DomUtil.create('div', 'legend');
     var colorLegend = L.DomUtil.create('div', 'colorLegend');
 
-    var closeButton = document.createElement('a');
+    var closeButton = document.createElement('div');
     closeButton.setAttribute('class', 'closeButton');
 
     var i_closeButton = document.createElement('i');
-    i_closeButton.setAttribute('class', 'far fa-window-close fa-2x');
+    i_closeButton.setAttribute('class', 'aqu_icon far fa-window-close fa-2x');
     closeButton.appendChild(i_closeButton);
 
     legend.appendChild(colorLegend);
@@ -503,7 +516,7 @@ function setupMap() {
   // legend.addTo(slcMap);
 
   // Change the position of the Zoom Control to a newly created placeholder.
-  slcMap.zoomControl.setPosition('verticalcenterright');
+  slcMap.zoomControl.setPosition('verticalcenterbottomright');
 
   slcMap.on("click", function(location) {
     var clickLocation = location.latlng;
@@ -961,6 +974,13 @@ function drawChart (){
     let hoveredLine = svg.select('.line' + d.data.id);
     hoveredLine.classed("hover", false);
     focus.attr("transform", "translate(-100,-100)");
+
+    // clear the focus
+    d3.select('#focusTime').text('')
+    d3.select('#focusDate').text('')
+    d3.select('.dateFocus rect').attr('x',null)
+    d3.select('.dateFocus rect').attr('width',null)
+    d3.select('.dateFocus rect').attr('height',null)
   }
 
   console.log(lineArray);
@@ -1211,6 +1231,15 @@ function clearData(changingTimeRange) {
   if (!changingTimeRange) {
     d3.selectAll('.dot').classed('sensor-selected', false);
   }
+
+  // clear the focus
+  d3.select('#focusTime').text('')
+  d3.select('#focusDate').text('')
+  d3.select('.dateFocus rect').attr('x',null)
+  d3.select('.dateFocus rect').attr('width',null)
+  d3.select('.dateFocus rect').attr('height',null)
+
+
 }
 
 
