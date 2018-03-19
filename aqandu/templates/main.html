@@ -98,7 +98,7 @@
                 </svg>
                 <div id="timelineControls">
                   <button id="clearDataButton" onclick="clearData()">Clear Data</button>
-                  
+
                   <input type="radio" id="timeRange_24h" name="timeRange" value="1" checked>
                   <label for="timeRange_24h">past 24 hours</label>
 
@@ -108,9 +108,10 @@
                   <input type="radio" id="timeRange_1w" name="timeRange" value="7">
                   <label for="timeRange_1w">past week</label>
 
+                  <div id="controlsForTimeline" class="closeButton"><i class="aqu_icon_close far fa-window-close fa-2x"></i></div>
 
 
-                  <form id="sensorDataSearch">
+                  <form id="sensorDataSearchForm">
                     <div id="search">
                       <div>
                         <label for="sensorDataSearch">Show data for airU sensor with sensor ID:</label>

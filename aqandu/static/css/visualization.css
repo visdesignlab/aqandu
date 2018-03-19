@@ -99,6 +99,13 @@ svg text {
   margin: 0px;
 } */
 
+#timelineControls {
+  background-color: rgba(255,255,255,0.7);
+
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+  border-radius: 5px;
+}
+
 #timelineControls label {
   font-family: 'Open Sans', sans-serif;
   /* font-weight: bold; */
@@ -107,6 +114,10 @@ svg text {
 
   margin: 0px 10px 10px 2px;
   /* line-height: 32px; */
+}
+
+#sensorDataSearch {
+  width: 60px;
 }
 
 #search label {
@@ -449,6 +460,18 @@ input:valid ~ span.validity:after {
   left: 8px;
   position: absolute;
   z-index: 99;
+}
+
+.tooltip.rightTriangle:before{
+  border-top: 6px solid transparent;
+  border-left: 6px solid black;
+  border-bottom: 6px solid transparent;
+  content: "";
+  position: absolute;
+  z-index: 99;
+
+  top: 12px;
+  left: 170px;
 }
 
 .tooltipText {

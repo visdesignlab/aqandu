@@ -73,14 +73,32 @@ $(function() {
   $('.helpIcon').append('<i class="moreInfo far fa-question-circle"></i>')
   $('.helpIcon').on('click', d => {
   // $('.moreInfo').on('mouseover', d => {
-    var mainOffset_x = $('.legendTitle')[0].getBoundingClientRect().left
-    var mainOffset_y = $('.legendTitle')[0].getBoundingClientRect().top
+
+    var legendTitlePosition_x;
+    var legendTitlePosition_y;
+    if (d.currentTarget.parentElement.id === 'PM25level') {
+      legendTitlePosition_x = $('#PM25level')[0].getBoundingClientRect().left;
+      legendTitlePosition_y = $('#PM25level')[0].getBoundingClientRect().top;
+
+    } else if (d.currentTarget.parentElement.id === 'datasource') {
+      legendTitlePosition_x = $('#datasource')[0].getBoundingClientRect().left;
+      legendTitlePosition_y = $('#datasource')[0].getBoundingClientRect().top;
+
+    } else {
+      console.log("unknown legend title")
+    }
+
+
+    // var mainOffset_x = $('.legendTitle')[0].getBoundingClientRect().left
+    // var mainOffset_y = $('.legendTitle')[0].getBoundingClientRect().top
 
     // var x = $(d3div.node()).offset().left;
     // var y = $(d3div.node()).offset().top;
 
-    $('.tooltip').removeClass('hidden')
-    $('.tooltip').addClass('show')
+    $('.tooltip').removeClass('hidden');
+    $('.tooltip').addClass('show');
+    $('.tooltip').addClass('rightTriangle');
+
     var tooltipHeight = $('.tooltip').height();
     var tooltipWidth = $('.tooltip').width();
     // console.log(tooltipHeight);
@@ -88,9 +106,15 @@ $(function() {
     d3.select('.tooltip')
       // .style("left", (x - mainOffset_x) + "px")
       // .style("top", (y - mainOffset_y - tooltipHeight - 6 - 6 - 6 - 3) + "px")
-      .style("left", (mainOffset_x - tooltipWidth) + "px")
-      .style("top", (mainOffset_y + tooltipHeight) + "px")
+      .style("left", (legendTitlePosition_x - tooltipWidth - 20) + "px")
+      .style("top", (legendTitlePosition_y - 15) + "px")
   })
+
+  // TODO the unlcikc
+  // titleDataSource.on('mouseout', d => {
+  //   $('.tooltip').removeClass('show')
+  //   $('.tooltip').addClass('hidden')
+  // });
 });
 
 // document.addEventListener('DOMContentLoaded', function () {
@@ -135,9 +159,9 @@ function init() {
   });
 
 
-  $('#sensorDataSearch').on('submit', function(e) {
+  $('#sensorDataSearchForm').on('submit', function(e) {
       e.preventDefault();  //prevent form from submitting
-      let data = $("#sensorDataSearch :input").serializeArray();
+      let data = $("#sensorDataSearchForm :input").serializeArray();
       console.log(data[0].value);
 
       let anAggregation = getAggregation(whichTimeRangeToShow);
@@ -338,6 +362,7 @@ function setupMap() {
     var colorLegend = L.DomUtil.create('div', 'colorLegend');
 
     var closeButton = document.createElement('div');
+    closeButton.setAttribute('id', 'legend');
     closeButton.setAttribute('class', 'closeButton');
 
     var i_closeButton = document.createElement('i');
@@ -353,7 +378,7 @@ function setupMap() {
     var from;
     var to;
 
-    colorLabels.push("<span class='legendTitle'>PM2.5 levels:&nbsp;&nbsp;</span>");
+    colorLabels.push("<span id='PM25level' class='legendTitle'>PM2.5 levels:&nbsp;&nbsp;</span>");
 
     for (var i = 0; i < grades.length; i++) {
       from = grades[i];
@@ -376,8 +401,9 @@ function setupMap() {
 
     var d3div = d3.select(datasourceLegend);
     var titleDataSource = d3div.append('span')
-         .attr("class", "legendTitle")
-         .text('Data sources:');
+         .attr('id', 'datasource')
+         .attr('class', 'legendTitle')
+         .html('Data sources:&nbsp;&nbsp;');
 
 
     // titleDataSource.on('mouseover', d => {
@@ -401,10 +427,10 @@ function setupMap() {
     //     .style("top", (mainOffset_y + tooltipHeight) + "px")
     // })
 
-    titleDataSource.on('mouseout', d => {
-      $('.tooltip').removeClass('show')
-      $('.tooltip').addClass('hidden')
-    });
+    // titleDataSource.on('mouseout', d => {
+    //   $('.tooltip').removeClass('show')
+    //   $('.tooltip').addClass('hidden')
+    // });
 
     var dataLabel = ["airu", "PurpleAir", "Mesowest", "DAQ"];
     var labels = d3div.selectAll('label').data(dataLabel);
@@ -464,8 +490,8 @@ function setupMap() {
 
   theLegend.addTo(slcMap);
 
-  $('.closeButton').on("click", function() {
-    console.log('hiding color legend');
+  $('#legend.closeButton').on("click", function() {
+    console.log('hiding legend');
     $('.legend').hide();
     $('.reappearingButton').show();
   });
@@ -474,6 +500,14 @@ function setupMap() {
     console.log('showing color legend');
     $('.legend').show();
     $('.reappearingButton').hide();
+  });
+
+
+  $('#controlsForTimeline.closeButton').on("click", function() {
+    console.log('hiding controls');
+    $('#timelineControls').hide();
+    // $('.reappearingButton').show();
+
   });
 
 
@@ -1287,13 +1321,15 @@ function clearData(changingTimeRange) {
   }
 
   // clear the focus
-  d3.select('#focusTime').text('')
-  d3.select('#focusDate').text('')
-  d3.select('.dateFocus rect').attr('x',null)
-  d3.select('.dateFocus rect').attr('width',null)
-  d3.select('.dateFocus rect').attr('height',null)
+  d3.select('#focusTime').text('');
+  d3.select('#focusDate').text('');
+  d3.select('.dateFocus rect').attr('x',null);
+  d3.select('.dateFocus rect').attr('width',null);
+  d3.select('.dateFocus rect').attr('height',null);
 
-
+  // reset the search box field
+  document.getElementById('sensorDataSearch').value = '';
+  document.getElementById('errorInformation').textContent = ''
 }
 
 
