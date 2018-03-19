@@ -181,13 +181,55 @@ input:valid ~ span.validity:after {
 
 
 .aqu_icon {
-  background-color: #c00;
-  color: rgba(255,255,255,.5);
-  padding: 2px;
+  position: absolute;
+  top: 4px;
+  left: 5px;
+  background-color: #fff;
+  color: #000;
+  font-size: 1.5em;
+  /* padding: 2px; */
 }
 
-.aqu_icon:hover {
+.aqu_icon_close {
+  font-size: 1.5em
+}
+
+/* .aqu_icon:hover {
   color: #fff;
+} */
+
+
+.reappearingButton {
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(0,0,0,0.4);
+  position: relative;
+  background-color: #fff;
+  border-radius: 4px;
+}
+
+.reappearingButton:hover {
+  background-color: #f2f2f2;
+}
+
+.moreInfo {
+  font-size: 1.5em;
+}
+
+#numberof_airu {
+  padding-left: 10px;
+}
+
+#numberof_PurpleAir {
+  padding-left: 10px;
+}
+
+#numberof_Mesowest {
+  padding-left: 10px;
+}
+
+#numberof_DAQ{
+  padding-left: 10px;
 }
 
 /* TIMELINE */

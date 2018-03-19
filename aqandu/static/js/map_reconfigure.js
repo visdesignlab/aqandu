@@ -54,7 +54,7 @@ $(function() {
   drawSensorOnMap();
 
   // there is new data every minute for a sensor in the db
-  setInterval('updateDots()', 60000);
+  setInterval('updateDots()', 60000);  // 60'000 = 60'000 miliseconds = 60 seconds = 1min
   setInterval('updateSensors()', 300000); // update every 5min
   // setInterval('updateSensors()', 60000); // update every 5min
 
@@ -68,7 +68,36 @@ $(function() {
   sensLayer.addTo(theMap);
   // L.control.layers(null, overlayMaps).addTo(theMap);
 
+  // adding help buttons
+  $('.legendTitle').append('<span class="helpIcon"></span>')
+  $('.helpIcon').append('<i class="moreInfo far fa-question-circle"></i>')
+  $('.helpIcon').on('click', d => {
+  // $('.moreInfo').on('mouseover', d => {
+    var mainOffset_x = $('.legendTitle')[0].getBoundingClientRect().left
+    var mainOffset_y = $('.legendTitle')[0].getBoundingClientRect().top
+
+    // var x = $(d3div.node()).offset().left;
+    // var y = $(d3div.node()).offset().top;
+
+    $('.tooltip').removeClass('hidden')
+    $('.tooltip').addClass('show')
+    var tooltipHeight = $('.tooltip').height();
+    var tooltipWidth = $('.tooltip').width();
+    // console.log(tooltipHeight);
+
+    d3.select('.tooltip')
+      // .style("left", (x - mainOffset_x) + "px")
+      // .style("top", (y - mainOffset_y - tooltipHeight - 6 - 6 - 6 - 3) + "px")
+      .style("left", (mainOffset_x - tooltipWidth) + "px")
+      .style("top", (mainOffset_y + tooltipHeight) + "px")
+  })
 });
+
+// document.addEventListener('DOMContentLoaded', function () {
+//     $('.legendTitle').on('click', '[data-fa-i2svg]', function () {
+//       alert('You clicked the icon itself');
+//     });
+//   });
 
 
 function init() {
@@ -102,10 +131,9 @@ function init() {
 
     lineData.forEach(function(aLine) {
       reGetGraphData(aLine.id, aLine.sensorSource, aLine.aggregation);
-
-    })
-
+    });
   });
+
 
   $('#sensorDataSearch').on('submit', function(e) {
       e.preventDefault();  //prevent form from submitting
@@ -313,7 +341,7 @@ function setupMap() {
     closeButton.setAttribute('class', 'closeButton');
 
     var i_closeButton = document.createElement('i');
-    i_closeButton.setAttribute('class', 'aqu_icon far fa-window-close fa-2x');
+    i_closeButton.setAttribute('class', 'aqu_icon_close far fa-window-close fa-2x');
     closeButton.appendChild(i_closeButton);
 
     legend.appendChild(colorLegend);
@@ -325,7 +353,7 @@ function setupMap() {
     var from;
     var to;
 
-    colorLabels.push("<span class='legendTitle'>PM2.5 levels:</span>");
+    colorLabels.push("<span class='legendTitle'>PM2.5 levels:&nbsp;&nbsp;</span>");
 
     for (var i = 0; i < grades.length; i++) {
       from = grades[i];
@@ -351,22 +379,27 @@ function setupMap() {
          .attr("class", "legendTitle")
          .text('Data sources:');
 
-    titleDataSource.on('mouseover', d => {
-      var mainOffset_x = $('.main').offset().left
-      var mainOffset_y = $('.main').offset().top
 
-      var x = $(d3div.node()).offset().left;
-      var y = $(d3div.node()).offset().top;
-
-      $('.tooltip').removeClass('hidden')
-      $('.tooltip').addClass('show')
-      var tooltipHeight = $('.tooltip').height();
-      // console.log(tooltipHeight);
-
-      d3.select('.tooltip')
-        .style("left", (x - mainOffset_x) + "px")
-        .style("top", (y - mainOffset_y - tooltipHeight - 6 - 6 - 6 - 3) + "px")
-    })
+    // titleDataSource.on('mouseover', d => {
+    // // $('.moreInfo').on('mouseover', d => {
+    //   var mainOffset_x = $('.legendTitle')[0].getBoundingClientRect().left
+    //   var mainOffset_y = $('.legendTitle')[0].getBoundingClientRect().top
+    //
+    //   // var x = $(d3div.node()).offset().left;
+    //   // var y = $(d3div.node()).offset().top;
+    //
+    //   $('.tooltip').removeClass('hidden')
+    //   $('.tooltip').addClass('show')
+    //   var tooltipHeight = $('.tooltip').height();
+    //   var tooltipWidth = $('.tooltip').width();
+    //   // console.log(tooltipHeight);
+    //
+    //   d3.select('.tooltip')
+    //     // .style("left", (x - mainOffset_x) + "px")
+    //     // .style("top", (y - mainOffset_y - tooltipHeight - 6 - 6 - 6 - 3) + "px")
+    //     .style("left", (mainOffset_x - tooltipWidth) + "px")
+    //     .style("top", (mainOffset_y + tooltipHeight) + "px")
+    // })
 
     titleDataSource.on('mouseout', d => {
       $('.tooltip').removeClass('show')
@@ -378,9 +411,13 @@ function setupMap() {
     labels.exit().remove();
     var labelsEnter = labels.enter()
                            .append('label')
-                           .attr("class", "sensorType");
+                           .attr("class", "sensorType")
+
     labels = labels.merge(labelsEnter);
     labels.text(d => d);
+
+    labels.append('span')
+      .attr("id", d => 'numberof_' + d);
 
     labels.on('click', d => {
       if (currentlySelectedDataSource != 'none') {
@@ -533,6 +570,19 @@ function setupMap() {
  */
 function drawSensorOnMap() {
   getDataFromDB(liveSensorURL_all).then((data) => {
+
+    var numberOfPurpleAir = data.filter(sensor => sensor['Sensor Source'] === 'Purple Air').length;
+    $('#numberof_PurpleAir').html(numberOfPurpleAir);
+
+    var numberOfAirU = data.filter(sensor => sensor['Sensor Source'] === 'airu').length;
+    $('#numberof_airu').html(numberOfAirU);
+
+    var numberOfMesowest = data.filter(sensor => sensor['Sensor Source'] === 'Mesowest').length;
+    $('#numberof_Mesowest').html(numberOfMesowest);
+
+    var numberOfDAQ = data.filter(sensor => sensor['Sensor Source'] === 'DAQ').length;
+    $('#numberof_DAQ').html(numberOfDAQ);
+
     const response = data.map((d) => {
       // if (d['Sensor Source'] === 'Purple Air') {
       d.pm25 = conversionPM(d.pm25, d['Sensor Source'], d['Sensor Model']);
@@ -686,6 +736,10 @@ function updateSensors() {
     //     return d;
     //   }
     // });
+
+    var numberOfAirUOut = data.length;
+    $('#numberof_airu').html(numberOfAirUOut);
+
     const response = data.filter((d) => {
 
       if (!liveAirUSensors.includes(d.ID)) {
