@@ -24,25 +24,73 @@ svg text {
   /* background-color: rgb(0,228,0); */
   background-color: rgb(166, 217, 106);
 }
+.green1 {
+  /* background-color: rgb(0,228,0); */
+  background-color: rgb(49, 163, 84);
+}
+.green2 {
+  /* background-color: rgb(0,228,0); */
+  background-color: rgb(161, 217, 155);
+}
+.green3 {
+  /* background-color: rgb(0,228,0); */
+  background-color: rgb(229, 245, 224);
+}
 .yellow {
   /* background-color: rgb(255,255,0); */
   background-color: rgb(255, 255, 191);
+}
+.yellow1 {
+  /* background-color: rgb(255,255,0); */
+  background-color: rgb(255, 255, 204);
+}
+.yellow2 {
+  /* background-color: rgb(255,255,0); */
+  background-color: rgb(255, 237, 160);
+}
+.yellow3 {
+  /* background-color: rgb(255,255,0); */
+  background-color: rgb(254, 217, 118);
 }
 .orange {
   /* background-color: rgb(255,126,0); */
   background-color: rgb(253, 174, 97);
 }
+.orange1 {
+  /* background-color: rgb(255,126,0); */
+  background-color: rgb(254, 178, 76);
+}
+.orange2 {
+  /* background-color: rgb(255,126,0); */
+  background-color: rgb(253, 141, 60);
+}
+.orange3 {
+  /* background-color: rgb(255,126,0); */
+  background-color: rgb(252, 78, 42);
+}
 .red {
   /* background-color: rgb(255,0,0); */
   background-color: rgb(215, 25, 28);
 }
+.red1 {
+  /* background-color: rgb(255,0,0); */
+  background-color: rgb(227, 26, 28);
+}
 .veryUnhealthyRed {
+  /* background-color: rgb(153, 0, 76); */
+  background-color: rgb(189, 0, 38);
+}
+.veryUnhealthyRed1 {
   /* background-color: rgb(153, 0, 76); */
   background-color: rgb(189, 0, 38);
 }
 .hazardousRed {
   /* background-color: rgb(126, 0, 35); */
   background-color: rgb(166, 54, 3);
+}
+.hazardousRed1 {
+  /* background-color: rgb(126, 0, 35); */
+  background-color: rgb(128, 0, 38);
 }
 
 /* c = ('#a6d96a', '#ffffbf', '#fdae61', '#d7191c', '#bd0026', '#a63603') */
@@ -308,11 +356,11 @@ input:valid ~ span.validity:after {
     margin-bottom: 10px;
 }
 
-.legend {
+#legend {
   box-shadow: 0 0 15px rgba(0,0,0,0.2);
   border-radius: 5px;
   /* width: 100px; */
-  height: 243px;   /*102px;*/
+  height: 360px;     /*243px;*/   /*102px;*/
   float: left;
   margin-right: 8px;
   opacity: 0.9;
@@ -321,7 +369,7 @@ input:valid ~ span.validity:after {
   background: white;
   display: inline-block;
 }
-.legend label.sensorType {
+#legend label.sensorType {
   font-family: 'Open Sans', sans-serif;
   font-weight: 400;
   font-size: 8pt;
@@ -360,7 +408,7 @@ input:valid ~ span.validity:after {
   /* height: 138px;
   padding: 6px 8px;
 } */
-.colorLegend .legendTitle, .legend .legendTitle {
+#colorLegend .legendTitle {  /*, #legend .legendTitle {*/
   font-family: 'Open Sans', sans-serif;
   font-weight: bold;
   font-size: 8pt;
@@ -368,7 +416,7 @@ input:valid ~ span.validity:after {
 
   margin-bottom: .2em;
 }
-.colorLegend label {
+#colorLegend label {
   font-family: 'Open Sans', sans-serif;
   font-weight: 400;
   font-size: 8pt;
@@ -377,7 +425,7 @@ input:valid ~ span.validity:after {
   line-height: 18px;
   margin: 0pt;
 }
-.colorLegend label i {
+#colorLegend label i {
   width: 18px;
   height: 18px;
   float: left;

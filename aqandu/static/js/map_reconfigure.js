@@ -2,22 +2,26 @@
 /* eslint no-undef: "error" */
 /* eslint no-mixed-operators: ["error", {"allowSamePrecedence": true}] */
 
+// var imageUrl = 'static/aqconference_colorband.png';
+// var imageUrl = 'static/test.svg'
+
+
 // setting dates for timeline and for ajax calls
 const today = new Date().toISOString().substr(0, 19) + 'Z';
-// const todayMST = moment(today).tz("MST").format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) + "Z"
 const date = new Date();
-// const dateMST = new Date().toLocaleString("en-US", {timeZone: "America/Denver"});
 date.setDate(date.getDate() - 1);
 let pastDate = date.toISOString().substr(0, 19) + 'Z';
-// const yesterdayMST = moment(date).tz("MST").format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) + "Z"
 
-// const x = d3.scaleTime().domain([new Date(yesterday), new Date(today)]);
 let x = d3.scaleTime().domain([new Date(pastDate), new Date(today)]);
-// const lineColor = d3.scaleOrdinal(d3.schemeCategory10);
 const y = d3.scaleLinear().domain([0.0, 150.0]);
 
+const slcMap = L.map('SLC-map', {
+    // center: [40.7608, -111.8910],
+    center: [40.748808, -111.8896],
+    zoom: 13
+  });;
+
 const sensLayer = L.layerGroup();
-// const heat = L.heatLayer();
 
 const epaColors = ['green', 'yellow', 'orange', 'red', 'veryUnhealthyRed', 'hazardousRed', 'noColor'];
 
@@ -39,7 +43,6 @@ const contoursURL = generateURL(dbEndpoint, '/contours', null);
 const lastContourURL = generateURL(dbEndpoint, '/getLatestContour', null);
 
 
-
 let theMap;
 
 let liveAirUSensors = [];
@@ -49,17 +52,27 @@ let whichTimeRangeToShow = 1;
 let currentlySelectedDataSource = 'none';
 
 
+// function to run when page has finished loading all DOM elements and they are ready to use
 $(function() {
+  // startTheWholePage(imageUrl)
+  startTheWholePage()
+});
+
+
+//
+function startTheWholePage() {
   $(document).ready(init);
   window.onresize = init();
 
+  // theMap = setupMap(imageUrl);
   theMap = setupMap();
 
   drawSensorOnMap();
 
   // there is new data every minute for a sensor in the db
-  setInterval('updateDots()', 60000);  // 60'000 = 60'000 miliseconds = 60 seconds = 1min
+  setInterval('updateDots()', 60000);  // 60'000 = 60'000 miliseconds = 60 seconds = 1 min
   setInterval('updateSensors()', 300000); // update every 5min
+  setInterval('updateContour()', 300000); // update every 5min
   // setInterval('updateSensors()', 60000); // update every 5min
 
 
@@ -114,23 +127,41 @@ $(function() {
       .style("top", (legendTitlePosition_y - 15) + "px")
   })
 
+  // preventing click on timeline to generate map event (such as creating dot for getting AQ)
+  var timelineDiv = L.DomUtil.get('timeline');
+  L.DomEvent.disableClickPropagation(timelineDiv);
+  L.DomEvent.on(timelineDiv, 'mousewheel', L.DomEvent.stopPropagation);
+
+  var legendDiv = L.DomUtil.get('legend');
+  L.DomEvent.disableClickPropagation(legendDiv);
+  L.DomEvent.on(legendDiv, 'mousewheel', L.DomEvent.stopPropagation);
+
+  var reappearingButtonDiv = L.DomUtil.get('legend_reappearingButton');
+  L.DomEvent.disableClickPropagation(reappearingButtonDiv);
+  L.DomEvent.on(reappearingButtonDiv, 'mousewheel', L.DomEvent.stopPropagation);
+
+
   // TODO the unlcikc
   // titleDataSource.on('mouseout', d => {
   //   $('.tooltip').removeClass('show')
   //   $('.tooltip').addClass('hidden')
   // });
-});
 
-// document.addEventListener('DOMContentLoaded', function () {
-//     $('.legendTitle').on('click', '[data-fa-i2svg]', function () {
-//       alert('You clicked the icon itself');
-//     });
-//   });
+  // for the screenscapture thing
+  // bottomLeftCorner = {'lat': 40.598850, 'lng': -112.001349}
+    // topRightCorner = {'lat': 40.810476, 'lng': -111.713403}
+    // $('#timeline').hide();
+  // $('nav').hide();
+  // $('.legend').hide();
+
+
+};
+
 
 
 function init() {
 
-  // deals with settiing the from date for the timeline when the radio button is changed
+  // deals with setting the from date for the timeline when the radio button is changed
   $('#timelineControls input[type=radio]').on('change', function() {
     whichTimeRangeToShow = parseInt($('[name="timeRange"]:checked').val());
 
@@ -324,10 +355,11 @@ function addControlPlaceholders(map) {
  * @return {[type]} [description]
  */
 function setupMap() {
-  const slcMap = L.map('SLC-map', {
-    center: [40.7608, -111.8910],
-    zoom: 13
-  });
+  // slcMap = L.map('SLC-map', {
+  //   // center: [40.7608, -111.8910],
+  //   center: [40.748808, -111.8896],
+  //   zoom: 13
+  // });
 
 
   //beginning of Peter's code (how to use StamenTileLayer)
@@ -344,87 +376,33 @@ function setupMap() {
   topLayerLabels.setZIndex(9);
   topLayerLines.setZIndex(9);
 
+  // 40.70159
+  // imageBounds = [[40.70159, -112.058312], [40.84339186094368, -111.8185385553846]];
+  imageBounds = [[40.598850, -112.001349], [40.810476, -111.713403]];
+  // imageBounds = [[40.70159, -112.058312], [40.8433918609, -111.8109267]];
+  // L.imageOverlay(imageUrl, imageBounds, {
+  //    opacity: 0.8,
+  //    interactive: true,
+  //  }).addTo(slcMap);
+
+  // ******** start contour stuff ********
   L.svg().addTo(slcMap);
 
-  getDataFromDB(contoursURL).then(data => {
+  // var mapSVG = d3.select("#SLC-map").select("svg.leaflet-zoom-animated");
+  // var mapSVG_g = mapSVG.select("g");
 
-    // process contours data
+  getDataFromDB(lastContourURL).then(data => {
+
     console.log(data)
-
-    var transform = d3.geoTransform({
-        point: projectPoint
-    });
-    var path = d3.geoPath().projection(transform);
-
-    function projectPoint(x, y) {
-        var point = slcMap.latLngToLayerPoint(new L.LatLng(y, x));
-        this.stream.point(point.x, point.y);
-    }
-    var contours = [];
-    for (var key in data) {
-      // check if the property/key is defined in the object itself, not in parent
-      if (data.hasOwnProperty(key)) {
-          console.log(key, data[key]);
-          var theContour = data[key]['contours'][0];
-          var aContour = theContour.path;
-          aContour.level = theContour.level;
-          aContour.k = theContour.k;
-
-          contours.push(aContour);
-      }
-    }
-
-    contours.sort(function(a,b) {
-        return b.level - a.level;
-    });
-
-    var levelColours = ['#a6d96a', '#ffffbf', '#fdae61', '#d7191c', '#bd0026', '#a63603'];
-    var defaultContourColor = 'black';
-    var defaultContourWidth = 1;
-
-    //console.log('jsonStruct:', jsonStruct);
-    var mapSVG = d3.select("#SLC-map").select("svg");
-    var g = mapSVG.select("g");  //.attr("class", "leaflet-zoom-hide").attr('opacity', 0.8);
-    var contourPath = g.selectAll("path")
-      .data(contours)
-    .enter().append("path")
-    .style("fill",function(d, i) { return levelColours[d.level];})
-    .style("stroke", defaultContourColor)
-    .style('stroke-width', defaultContourWidth)
-    .style('opacity', 1)
-    .on('mouseover', function(d) {
-        d3.select(this).style('stroke', 'black');
-    })
-    .on('mouseout', function(d) {
-        d3.select(this).style('stroke', defaultContourColor);
-    });
-
-    function resetView() {
-      console.log('reset:', slcMap.options.center);
-      contourPath.attr("d", function(d) {
-        var pathStr = d.map(function(d1) {
-          var point = slcMap.latLngToLayerPoint(new L.LatLng(d1[1], d1[2]));
-          return d1[0] + point.x + "," + point.y;
-        }).join('');
-
-        //console.log('d', d);
-
-        return pathStr;
-      });
-    }
-
-    // slcMap.on("viewreset", resetView);
-    slcMap.on("zoom", resetView);
-
-    resetView();
-
+    // process contours data
+    setContour(slcMap, data);
 
   }).catch(function(err){
 
       alert("error, request failed!");
       console.log("Error: ", err)
   });
-
+  // ******** start contour stuff ********
 
 
   // // load a tile layer
@@ -450,6 +428,7 @@ function setupMap() {
 
     var reappearingButton = document.createElement('div');
     reappearingButton.setAttribute('class', 'reappearingButton');
+    reappearingButton.setAttribute('id', 'legend_reappearingButton');
 
     var i_reappearingButton = document.createElement('i');
     // i_reappearingButton.setAttribute('class', 'fas fa-info fa-2x');
@@ -471,11 +450,18 @@ function setupMap() {
 
     // adding color legend
     var legend = L.DomUtil.create('div', 'legend');
+    legend.setAttribute('id', 'legend');
+
     var colorLegend = L.DomUtil.create('div', 'colorLegend');
+    colorLegend.setAttribute('id', 'colorLegend');
+
+    // $('.legend').click(function(e) {
+    //    e.stopPropagation();
+    // });
 
     var closeButton = document.createElement('div');
-    closeButton.setAttribute('id', 'legend');
     closeButton.setAttribute('class', 'closeButton');
+    // closeButton.setAttribute('id', 'closeButton');
 
     var i_closeButton = document.createElement('i');
     i_closeButton.setAttribute('class', 'aqu_icon_close far fa-window-close fa-2x');
@@ -486,6 +472,7 @@ function setupMap() {
 
 
     var grades = [0, 12, 35.4, 55.4, 150.4, 250.4];
+    var grades = [0.0, 4.0, 8.0, 12.0, 19.8, 27.6, 35.4, 42.1, 48.7, 55.4, 150.4, 250.4]
     var colorLabels = [];
     var from;
     var to;
@@ -602,7 +589,7 @@ function setupMap() {
 
   theLegend.addTo(slcMap);
 
-  $('#legend.closeButton').on("click", function() {
+  $('#legend .closeButton').on("click", function() {
     console.log('hiding legend');
     $('.legend').hide();
     $('.reappearingButton').show();
@@ -701,12 +688,159 @@ function setupMap() {
   // Change the position of the Zoom Control to a newly created placeholder.
   slcMap.zoomControl.setPosition('verticalcenterbottomright');
 
-  slcMap.on("click", function(location) {
+  slcMap.on("dblclick", function(location) {
+
     var clickLocation = location.latlng;
     console.log(clickLocation);
-  })
+
+    // create Dot
+    var randomClickMarker = [{'Latitude': String(clickLocation['lat']), 'Longitude': String(clickLocation['lng'])}]
+    sensorLayerRandomMarker(randomClickMarker)
+
+
+    var estimatesForLocationURL = generateURL(dbEndpoint, '/getEstimatesForLocation', {"location": {'lat': clickLocation['lat'], 'lng': clickLocation['lng']}, 'start': pastDate, 'end': today})
+
+    getDataFromDB(estimatesForLocationURL).then(data => {
+
+      console.log(data);
+      // adding the 4 selected corner points to do bilinear interpolation
+      // cornerMarkers = [data['leftBottomCorner'], data['leftTopCorner'], data['rightBottomCorner'], data['rightTopCorner']]
+      //
+      // corners = cornerMarkers.map(function(aMarker) {
+      //   return {'Latitude': String(aMarker['lat']), 'Longitude': String(aMarker['lng']), 'Sensor Source': 'airu', 'pm25': 150}
+      // })
+
+      // sensorLayerDebugging(corners)
+
+      // parse the incoming bilinerar interpolated data
+      var processedData = data.map((d) => {
+        return {
+          // id: id,
+          time: new Date(d.time),
+          pm25: d.pm25,
+          contour: d.contour
+        };
+      }).filter((d) => {
+        return d.pm25 === 0 || !!d.pm25; // forces NaN, null, undefined to be false, all other values to be true
+      });
+
+      // var newLine = {id: id, sensorSource: sensorSource, sensorData: processedSensorData};
+      var newLine = {sensorData: processedData};
+
+      // pushes data for this specific line to an array so that there can be multiple lines updated dynamically on Click
+      lineArray.push(newLine)
+
+      drawChart();
+
+      // return d
+
+    }).catch((err) => {
+      alert('error, request failed!');
+      console.log('Error: ', err)
+    });
+
+  });
 
   return slcMap;
+}
+
+
+function setContour(theMap, theContourData) {
+
+  var contours = [];
+  var allContours = theContourData.contour;
+  for (var key in allContours) {
+    if (allContours.hasOwnProperty(key)) {
+        // console.log(key, allContours[key]);
+        var theContour = allContours[key];
+        var aContour = theContour.path;
+        aContour.level = theContour.level;
+        aContour.k = theContour.k;
+
+        contours.push(aContour);
+    }
+  }
+
+  contours.sort(function(a,b) {
+      return b.level - a.level;
+  });
+
+  // var levelColours = ['#a6d96a', '#ffffbf', '#fdae61', '#d7191c', '#bd0026', '#a63603'];
+  var levelColours = ['#31a354', '#a1d99b', '#e5f5e0', '#ffffcc', '#ffeda0', '#fed976', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#bd0026', '#800026'];
+  var defaultContourColor = 'black';
+  var defaultContourWidth = 1;
+
+  var mapSVG = d3.select("#SLC-map").select("svg.leaflet-zoom-animated");
+  var g = mapSVG.select("g");  //.attr("class", "leaflet-zoom-hide").attr('opacity', 0.8);
+
+  // var contourPath = g.selectAll("path")
+  //         .data(contours)
+  //       .enter().append("path")
+  //       .style("fill", function(d, i) { return levelColours[d.level];})
+  //       .style("stroke", defaultContourColor)
+  //       .style('stroke-width', defaultContourWidth)
+  //       .style('opacity', 1)
+  //       .on('mouseover', function(d) {
+  //           d3.select(this).style('stroke', 'black');
+  //       })
+  //       .on('mouseout', function(d) {
+  //           d3.select(this).style('stroke', defaultContourColor);
+  //       });
+
+  var contourPath = g.selectAll("path")
+          .data(contours, function(d) { return d; });
+
+  contourPath.style("fill", function(d, i) { return levelColours[d.level];})
+            // .style("stroke", defaultContourColor)
+            // .style('stroke-width', defaultContourWidth)
+            .style('opacity', 1)
+            .on('mouseover', function(d) {
+                d3.select(this).style('stroke', 'black');
+            })
+            .on('mouseout', function(d) {
+                d3.select(this).style('stroke', defaultContourColor);
+            });
+
+  var contourEnter = contourPath.enter().append("path")
+    // .merge(contourPath)
+      // .attr("d", function(d) {
+      //   var pathStr = d.map(function(d1) {
+      //     var point = theMap.latLngToLayerPoint(new L.LatLng(d1[1], d1[2]));
+      //     return d1[0] + point.x + "," + point.y;
+      //   }).join('');
+      //   return pathStr;
+      // })
+      .style("fill", function(d, i) { return levelColours[d.level];})
+      // .style("stroke", defaultContourColor)
+      // .style('stroke-width', defaultContourWidth)
+      .style('opacity', 1)
+      .on('mouseover', function(d) {
+          d3.select(this).style('stroke', 'black');
+      })
+      .on('mouseout', function(d) {
+          d3.select(this).style('stroke', defaultContourColor);
+      });
+
+  contourPath.exit().remove();
+
+  function resetView() {
+    console.log('reset:', theMap.options.center);
+    contourEnter.attr("d", function(d) {
+      var pathStr = d.map(function(d1) {
+        var point = theMap.latLngToLayerPoint(new L.LatLng(d1[1], d1[2]));
+        return d1[0] + point.x + "," + point.y;
+      }).join('');
+
+      //console.log('d', d);
+
+      return pathStr;
+    });
+  }
+
+  // slcMap.on("viewreset", resetView);
+  theMap.on("zoom", resetView);
+
+  resetView();
 }
 
 
@@ -756,6 +890,17 @@ function sensorLayer(response){
 }
 
 
+function sensorLayerDebugging(response){
+  response.forEach(createMarkerDebugging);
+}
+
+// layer with the marks where people clicked
+function sensorLayerRandomMarker(response){
+  response.forEach(createRandomClickMarker);
+}
+
+
+
 function createMarker(markerData) {
   var dotIcon = {
     iconSize:     [20, 20], // size of the icon
@@ -770,9 +915,13 @@ function createMarker(markerData) {
     let classList = 'dot';
     let currentPM25 = markerData.pm25;
 
-    let currentTime = new Date().getTime()
-    let timeLastMeasurement = markerData.time;
-    let minutesINBetween = (currentTime - timeLastMeasurement) / (1000 * 60);
+    // if (markerData.time != undefined) {
+      let currentTime = new Date().getTime()
+      let timeLastMeasurement = markerData.time;
+      let minutesINBetween = (currentTime - timeLastMeasurement) / (1000 * 60);
+    // } else {
+    //   minutesINBetween = 1
+    // }
 
     let theColor
     if (markerData['Sensor Source'] === 'airu') {
@@ -823,6 +972,76 @@ function createMarker(markerData) {
 }
 
 
+function createMarkerDebugging(markerData) {
+  var dotIcon = {
+    iconSize:     [20, 20], // size of the icon
+    iconAnchor:   [10, 10], // point of the icon which will correspond to marker's location
+    popupAnchor:  [0, -5], // point from which the popup should open relative to the iconAnchor
+    html: ''
+  };
+
+  console.log(markerData);
+
+  if (markerData.Latitude !== null && markerData.Longitude !== null) {
+    let classList = 'dot';
+
+    let theColor = 'hazardousRed'
+
+    // let theColor = getColor(markerData["pm25"]);
+    // console.log(item["ID"] + ' ' + theColor + ' ' + item["pm25"])
+    classList = classList + ' ' + theColor + ' ';
+
+    dotIcon.className = classList;
+
+    var mark = new L.marker(
+      L.latLng(
+        parseFloat(markerData.Latitude),
+        parseFloat(markerData.Longitude)
+      ),
+      { icon: L.divIcon(dotIcon) }
+    ).addTo(sensLayer);
+
+    mark.id = 'sensorLayerDebugging';
+
+  }
+}
+
+
+function createRandomClickMarker(markerData) {
+  var dotIcon = {
+    iconSize:     [20, 20], // size of the icon
+    iconAnchor:   [10, 10], // point of the icon which will correspond to marker's location
+    popupAnchor:  [0, -5], // point from which the popup should open relative to the iconAnchor
+    html: ''
+  };
+
+  console.log(markerData);
+
+  if (markerData.Latitude !== null && markerData.Longitude !== null) {
+    let classList = 'dot';
+
+    let theColor = 'hazardousRed'
+
+    // let theColor = getColor(markerData["pm25"]);
+    // console.log(item["ID"] + ' ' + theColor + ' ' + item["pm25"])
+    classList = classList + ' ' + theColor + ' ';
+
+    dotIcon.className = classList;
+
+    var mark = new L.marker(
+      L.latLng(
+        parseFloat(markerData.Latitude),
+        parseFloat(markerData.Longitude)
+      ),
+      { icon: L.divIcon(dotIcon) }
+    ).addTo(sensLayer);
+
+    mark.id = 'sensorLayerRandomMarker';
+
+  }
+}
+
+
 function updateDots() {
   console.log('updating the dots current value');
 
@@ -840,28 +1059,30 @@ function updateDots() {
 
     sensLayer.eachLayer(function(layer) {
       // console.log(layer.id)
-      let currentTime = new Date().getTime()
-      let timeLastMeasurement = new Date(data[layer.id].time).getTime();
-      let minutesINBetween = (currentTime - timeLastMeasurement) / (1000 * 60);
+      if (layer.id !== "sensorLayerRandomMarker") {
+        let currentTime = new Date().getTime()
+        let timeLastMeasurement = new Date(data[layer.id].time).getTime();
+        let minutesINBetween = (currentTime - timeLastMeasurement) / (1000 * 60);
 
-      let currentPM25 = data[layer.id].last;
+        let currentPM25 = data[layer.id].last;
 
-      let theColor
-      if (data[layer.id]['Sensor Source'] === 'airu') {
-        if (minutesINBetween < 5.0) {
-          theColor = getColor(currentPM25);
+        let theColor
+        if (data[layer.id]['Sensor Source'] === 'airu') {
+          if (minutesINBetween < 5.0) {
+            theColor = getColor(currentPM25);
+          } else {
+            theColor = 'noColor';
+          }
         } else {
-          theColor = 'noColor';
+          theColor = getColor(currentPM25);
         }
-      } else {
-        theColor = getColor(currentPM25);
+
+
+
+        console.log(layer.id + ' ' + theColor + ' ' + currentPM25)
+        $(layer._icon).removeClass(epaColors.join(' '))
+        $(layer._icon).addClass(theColor)
       }
-
-
-
-      console.log(layer.id + ' ' + theColor + ' ' + currentPM25)
-      $(layer._icon).removeClass(epaColors.join(' '))
-      $(layer._icon).addClass(theColor)
     });
 
   }).catch((err) => {
@@ -876,12 +1097,6 @@ function updateSensors() {
   console.log('updating the sensors: adding new airUs if available');
 
   getDataFromDB(liveSensorURL_airU).then((data) => {
-    // const response = data.map((d) => {
-    //
-    //   if (!liveAirUSensors.includes(d.ID)) {
-    //     return d;
-    //   }
-    // });
 
     var numberOfAirUOut = data.length;
     $('#numberof_airu').html(numberOfAirUOut);
@@ -901,6 +1116,25 @@ function updateSensors() {
   });
 }
 
+
+// updates the contours
+function updateContour() {
+  console.log('updating the contours');
+
+  getDataFromDB(lastContourURL).then(data => {
+
+    console.log(data)
+    // process contours data
+    setContour(slcMap, data);
+
+  }).catch(function(err){
+
+      // alert("error, request failed!");
+      console.log("Error when updating the contour: ", err)
+  });
+}
+
+
 // 0 - 12 ug/m^3 is green
 // 12.1 - 35.4 ug/m^3 is yellow
 // 35.5 - 55.4 ug/m^3 is orange
@@ -909,27 +1143,54 @@ function updateSensors() {
 // above 250.5 ug/m^3 is hazardousRed
 function getColor(currentValue) {
   let theColor;
-  if (currentValue <= 12) {
-    theColor = 'green';
-  } else if (currentValue > 12 && currentValue <= 35.4) {
-    theColor = 'yellow';
-  } else if (currentValue > 35.4 && currentValue <= 55.4) {
-    theColor = 'orange';
+  // if (currentValue <= 12) {
+  //   theColor = 'green';
+  // } else if (currentValue > 12 && currentValue <= 35.4) {
+  //   theColor = 'yellow';
+  // } else if (currentValue > 35.4 && currentValue <= 55.4) {
+  //   theColor = 'orange';
+  // } else if (currentValue > 55.4 && currentValue <= 150.4) {
+  //   theColor = 'red';
+  // } else if (currentValue > 150.4 && currentValue <= 250.4) {
+  //   theColor = 'veryUnhealthyRed';
+  // } else if (isNaN(currentValue)) {     // dealing with NaN values
+  //   theColor = 'noColor';
+  // } else {
+  //   theColor = 'hazardousRed';
+  // }
+
+  if (currentValue <= 4) {
+    theColor = 'green1';
+  } else if (currentValue > 4 && currentValue <= 8) {
+    theColor = 'green2';
+  } else if (currentValue > 8 && currentValue <= 12) {
+    theColor = 'green3';
+  } else if (currentValue > 12 && currentValue <= 19.8) {
+    theColor = 'yellow1';
+  } else if (currentValue > 19.8 && currentValue <= 27.6) {
+    theColor = 'yellow2';
+  } else if (currentValue > 27.6 && currentValue <= 35.4) {
+    theColor = 'yellow3';
+  } else if (currentValue > 35.4 && currentValue <= 42.1) {
+    theColor = 'orange1';
+  } else if (currentValue > 42.1 && currentValue <= 48.7) {
+    theColor = 'orange2';
+  } else if (currentValue > 48.7 && currentValue <= 55.4) {
+    theColor = 'orange3';
   } else if (currentValue > 55.4 && currentValue <= 150.4) {
-    theColor = 'red';
+    theColor = 'red1';
   } else if (currentValue > 150.4 && currentValue <= 250.4) {
-    theColor = 'veryUnhealthyRed';
+    theColor = 'veryUnhealthyRed1';
   } else if (isNaN(currentValue)) {     // dealing with NaN values
     theColor = 'noColor';
   } else {
-    theColor = 'hazardousRed';
+    theColor = 'hazardousRed1';
   }
+
 
   return theColor;
 }
 
-
-// var map = setupMap();
 
 function distance(lat1, lon1, lat2, lon2) {
   const p = 0.017453292519943295; // Math.PI / 180
@@ -1160,6 +1421,8 @@ function drawChart (){
     dateFocus.select("#focusTime").text(formatTime(d.data.time));
     dateFocus.select("#focusTime").attr('text-anchor', 'middle');
     dateFocus.select("#focusTime").attr('y', '40');
+
+    setContour(slcMap, d.data);
   }
 
   function mouseout(d) {
@@ -1257,6 +1520,7 @@ function getGraphData(mark, aggregation) {
 
       var url = generateURL(dbEndpoint, theRoute, parameters);
       console.log(url)
+
       getDataFromDB(url).then(data => {
 
           preprocessDBData(sensor["ID"], data)
@@ -1372,7 +1636,7 @@ function getData(strng){
 // L.control.layers(null, overlayMaps).addTo(theMap);
 
 
-function populateGraph(e) {
+function populateGraph() {
 
   if (d3.select(this._icon).classed('sensor-selected')) {
     // if dot already selected
@@ -1389,38 +1653,10 @@ function populateGraph(e) {
 
       let aggregation = getAggregation(whichTimeRangeToShow);
       getGraphData(this, aggregation);
-      // if (whichTimeRangeToShow === 1) {
-      //
-      //   getGraphData(this, false);
-      //
-      // } else {
-      //   getGraphData(this, true);
-      // }
-
     }
   }
 }
 
-
-// function showID() {
-//   console.log(this)
-//   var dotCenter = [this._latlng.lat, this._latlng.long]
-//   var endPoint = [this._latlng.lat + 0.002, this._latlng.long  + 0.004]
-//
-//   L.polyline([
-//     dotCenter,
-//     endPoint
-//   ]).addTo(map);
-//
-// }
-
-/* example of the leaflet heatmap plugin, possibly for
-modification for interpolation between points.
-*/
-function makeHeat(results) {
-  results = results.map(function (p) { return [p["lat"], p["lon"] ,(p["pmVal"])/100 ]});
-  heat = L.heatLayer(results).addTo(map);
-}
 
 function clearData(changingTimeRange) {
   // lineArray.forEach( // TODO clear the markers from the map )
