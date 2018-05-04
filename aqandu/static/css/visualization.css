@@ -258,6 +258,20 @@ input:valid ~ span.validity:after {
 }
 
 
+#openTimelineControlButton {
+  position: absolute;
+  top: 28px;
+  right: 45px;
+
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(0,0,0,0.4);
+  /* position: relative; */
+  background-color: #fff;
+  border-radius: 4px;
+}
+
+
 .aqu_icon {
   position: absolute;
   top: 4px;
@@ -318,42 +332,83 @@ input:valid ~ span.validity:after {
   display: block;
   z-index: 1025;
   width: 100%;
+  top: 50;
   bottom: 0;
   background-color: #ffffff;
-  height: 34%;
+  height: 37%;
 }
 
 #timelineControls {
   position: absolute;
-  top: 15px;
-  right: 20px;
+  top: 30px;
+  right: 45px;
 
   padding: 5px;
 }
 
 
+/* SLIDER */
+.track,
+.track-inset,
+.track-overlay {
+  stroke-linecap: round;
+}
+
+.track {
+  stroke: #000;
+  stroke-opacity: 0.3;
+  stroke-width: 10px;
+}
+
+.track-inset {
+  stroke: #ddd;
+  stroke-width: 8px;
+}
+
+.track-overlay {
+  pointer-events: stroke;
+  stroke-width: 50px;
+  stroke: transparent;
+  cursor: grab;
+}
+
+.handle {
+  fill: #c00;
+  stroke: #000;
+  stroke-opacity: 0.5;
+  stroke-width: 1.25px;
+}
+
+.ticks {
+  font: 10px sans-serif;
+}
+
+#contourTime {
+  fill: #c00;
+}
+
 .leaflet-verticalcentertop {
-    position: absolute;
-    z-index: 1000; /* <-- new line! */
-    top: 10%;
-    transform: translateY(-10%);
-    padding-top: 10px;
+  position: absolute;
+  z-index: 1000; /* <-- new line! */
+  top: 10%;
+  transform: translateY(-10%);
+  padding-top: 10px;
 }
 
 .leaflet-verticalcentertop .leaflet-control {
-    margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 
 .leaflet-verticalcenterbottom {
-    position: absolute;
-    z-index: 1000; /* <-- new line! */
-    top: 50%;
-    transform: translateY(50%);
-    padding-top: 10px;
+  position: absolute;
+  z-index: 1000; /* <-- new line! */
+  top: 50%;
+  transform: translateY(50%);
+  padding-top: 10px;
 }
 
 .leaflet-verticalcenterbottom .leaflet-control {
-    margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 
 #legend {
@@ -431,6 +486,161 @@ input:valid ~ span.validity:after {
   float: left;
   padding: 2px 0px;
   margin-right: 8px;
+}
+.colorLegendLabel {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 400;
+  font-size: 8pt;
+  color: #555;
+
+  /* line-height: 18px; */
+  margin: 0px;
+
+  display: block;
+}
+
+.tickLegend {
+  display: inline-block;
+  position:relative;
+
+  /* top: -10pt; */
+  left: -5px;
+}
+
+.colorbar {
+  width: 18px;
+  display: inline-block;
+
+  border: 1px solid #000;
+}
+
+#green1 {
+  /* height: 4px; */
+  /* height: 18px; */
+  height: 12px;
+}
+
+#green2 {
+  /* height: 4px; */
+  /* height: 18px; */
+  height: 12px;
+}
+
+#green3 {
+  /* height: 4px; */
+  /* height: 18px; */
+  height: 12px;
+}
+
+#yellow1 {
+  /* height: calc(19.8px - 12.0px); */
+  /* height: 27px; */
+  height: 18px;
+}
+
+#yellow2 {
+  /* height:  calc(27.6px - 19.8px); */
+  /* height: 27px; */
+  height: 18px;
+}
+
+#yellow3 {
+  /* height: calc(35.4px - 27.6px); */
+  /* height: 27px; */
+  height: 18px;
+}
+
+#orange1 {
+  /* height: calc(42.1px -35.4px); */
+  /* height: 24px; */
+  height: 16px;
+}
+
+#orange2 {
+  /* height: calc(48.7px - 42.1px); */
+  /* height: 24px; */
+  height: 16px;
+}
+
+#orange3 {
+  /* height: calc(55.4px - 48.7px); */
+  /* height: 24px; */
+  height: 16px;
+}
+
+#red1 {
+  /* height: calc(150.4px - 55.4px); */
+  /* height: 60px; */
+  height: 40px;
+}
+
+#veryUnhealthyRed1 {
+  /* height: calc(250.4px - 150.4px); */
+  /* height: 60px; */
+  height: 40px;
+}
+
+#hazardousRed1 {
+  /* height: calc(300px - 250.4px); */
+  /* height: 51px; */
+  height: 34px;
+}
+
+
+#PM25level {
+  margin-bottom: 5px;
+}
+
+#tickLegend_0 {
+  bottom: 10px;
+}
+
+#tickLegend_4 {
+  bottom: 11px;
+}
+
+#tickLegend_8 {
+  bottom: 11px;
+}
+
+#tickLegend_12 {
+  bottom: 17px;
+}
+
+#tickLegend_20 {
+  bottom: 17px;
+}
+
+#tickLegend_28 {
+  bottom: 17px;
+}
+
+#tickLegend_35 {
+  bottom: 15px;
+}
+
+#tickLegend_42 {
+  bottom: 15px;
+}
+
+#tickLegend_49 {
+  bottom: 15px;
+}
+
+#tickLegend_55 {
+  bottom: 39px;
+}
+
+#tickLegend_150 {
+  bottom: 39px;
+}
+
+#tickLegend_250 {
+  bottom: 33px;
+}
+
+#tickLegend_350 {
+  bottom: -5px;
 }
 
 .line-style {

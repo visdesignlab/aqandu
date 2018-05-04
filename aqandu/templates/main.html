@@ -78,24 +78,27 @@
 
             <div id="timeline">
                 <svg width="100%">
-                    <g id="colorBands"></g>
-                    <g id="lines"></g>
-                    <g class="x axis"></g>
-                    <text class="x label"></text>
-                    <g class="y axis"></g>
-                    <text class="y label"></text>
-                    <g class="focus" transform="translate(-100,-100)">
-                        <circle r="3.5"></circle>
-                        <text y="-10"></text>
+                    <g id="slider"></g>
+                    <g id="graph">
+                      <g id="colorBands"></g>
+                      <g id="lines"></g>
+                      <g class="x axis"></g>
+                      <text class="x label"></text>
+                      <g class="y axis"></g>
+                      <text class="y label"></text>
+                      <g class="focus" transform="translate(-100,-100)">
+                          <circle r="3.5"></circle>
+                          <text y="-10"></text>
+                      </g>
+                      <g class="dateFocus" transform="translate(-100,-100)">
+                          <!-- <circle r="3.5"></circle> -->
+                          <rect></rect>
+                          <!-- <text y="10"></text> -->
+                          <text id='focusDate'></text>
+                          <text id='focusTime'></text>
+                      </g>
+                      <g class = "voronoi">
                     </g>
-                    <g class="dateFocus" transform="translate(-100,-100)">
-                        <!-- <circle r="3.5"></circle> -->
-                        <rect></rect>
-                        <!-- <text y="10"></text> -->
-                        <text id='focusDate'></text>
-                        <text id='focusTime'></text>
-                    </g>
-                    <g class = "voronoi">
                 </svg>
                 <div id="timelineControls">
                   <button id="clearDataButton" onclick="clearData()">Clear Data</button>
@@ -112,6 +115,7 @@
                   <div id="controlsForTimeline" class="closeButton"><i class="aqu_icon_close far fa-window-close fa-2x"></i></div>
 
 
+
                   <form id="sensorDataSearchForm">
                     <div id="search">
                       <div>
@@ -126,6 +130,7 @@
                     </div>
                   </form>
                 </div>
+                <div id="openTimelineControlButton"><i class='aqu_icon fas fa-list fa-2x'></i></div>
             </div>
             <div class="tooltip hidden">
               <p class="tooltipText">These are the available PM2.5 data sources.</p>

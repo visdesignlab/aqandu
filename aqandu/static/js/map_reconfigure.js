@@ -7,11 +7,13 @@
 
 
 // setting dates for timeline and for ajax calls
-const today = new Date().toISOString().substr(0, 19) + 'Z';
+const todayDate = new Date();
+const today = todayDate.toISOString().substr(0, 19) + 'Z';
 const date = new Date();
 date.setDate(date.getDate() - 1);
 let pastDate = date.toISOString().substr(0, 19) + 'Z';
 
+// the axis transformation
 let x = d3.scaleTime().domain([new Date(pastDate), new Date(today)]);
 const y = d3.scaleLinear().domain([0.0, 150.0]);
 
@@ -34,12 +36,14 @@ const margin = {
 
 let lineArray = [];
 
+let theContours = [];
+
 const dbEndpoint = '/dbapi/api';
 const liveSensorURL_purpleAir = generateURL(dbEndpoint, '/liveSensors', {'type': 'purpleAir'});
 const liveSensorURL_airU = generateURL(dbEndpoint, '/liveSensors', {'type': 'airU'});
 const liveSensorURL_all = generateURL(dbEndpoint, '/liveSensors', {'type': 'all'});
 const lastPM25ValueURL = generateURL(dbEndpoint, '/lastValue', {'fieldKey': 'pm25'});
-const contoursURL = generateURL(dbEndpoint, '/contours', null);
+// const contoursURL = generateURL(dbEndpoint, '/contours', null);
 const lastContourURL = generateURL(dbEndpoint, '/getLatestContour', null);
 
 
@@ -52,7 +56,7 @@ let whichTimeRangeToShow = 1;
 let currentlySelectedDataSource = 'none';
 
 
-// function to run when page has finished loading all DOM elements and they are ready to use
+// function run when page has finished loading all DOM elements and they are ready to use
 $(function() {
   // startTheWholePage(imageUrl)
   startTheWholePage()
@@ -61,7 +65,9 @@ $(function() {
 
 //
 function startTheWholePage() {
-  $(document).ready(init);
+
+  // $(document).ready(init);
+  // init()
   window.onresize = init();
 
   // theMap = setupMap(imageUrl);
@@ -140,17 +146,20 @@ function startTheWholePage() {
   L.DomEvent.disableClickPropagation(reappearingButtonDiv);
   L.DomEvent.on(reappearingButtonDiv, 'mousewheel', L.DomEvent.stopPropagation);
 
+  $('#openTimelineControlButton').hide();
 
-  // TODO the unlcikc
+
+  // TODO the unclick
   // titleDataSource.on('mouseout', d => {
   //   $('.tooltip').removeClass('show')
   //   $('.tooltip').addClass('hidden')
   // });
 
+
   // for the screenscapture thing
   // bottomLeftCorner = {'lat': 40.598850, 'lng': -112.001349}
-    // topRightCorner = {'lat': 40.810476, 'lng': -111.713403}
-    // $('#timeline').hide();
+  // topRightCorner = {'lat': 40.810476, 'lng': -111.713403}
+  // $('#timeline').hide();
   // $('nav').hide();
   // $('.legend').hide();
 
@@ -161,7 +170,7 @@ function startTheWholePage() {
 
 function init() {
 
-  // deals with setting the from date for the timeline when the radio button is changed
+  // sets the from date for the timeline when the radio button is changed
   $('#timelineControls input[type=radio]').on('change', function() {
     whichTimeRangeToShow = parseInt($('[name="timeRange"]:checked').val());
 
@@ -173,15 +182,12 @@ function init() {
     x = d3.scaleTime().domain([new Date(pastDate), new Date(today)]);
     setUp();
 
-    // which ID are there
+
+
+    // which IDs are there
     let lineData = [];
     lineArray.forEach(function(aLine) {
       let theAggregation = getAggregation(whichTimeRangeToShow);
-      // if (whichTimeRangeToShow === 1) {
-      //   theAggregation = false;
-      // } else {
-      //   theAggregation = true;
-      // }
 
       lineData.push({id: aLine.id, sensorSource: aLine.sensorSource, aggregation: theAggregation})
     });
@@ -193,7 +199,7 @@ function init() {
     });
   });
 
-
+  // add the submit event
   $('#sensorDataSearchForm').on('submit', function(e) {
       e.preventDefault();  //prevent form from submitting
       let data = $("#sensorDataSearchForm :input").serializeArray();
@@ -228,20 +234,109 @@ function getAggregation(timeRange) {
   }
 }
 
+
+function getClosest(num, ar) {
+  if (num < ar[0].time) {
+    return ar[0].time;
+  } else if (num > ar[ar.length - 1].time) {
+    return ar[ar.length - 1].time;
+  } else {
+    return ar.sort((a, b) => Math.abs(new Date(a.time) - new Date(num)) - Math.abs(new Date(b.time) - new Date(num))).slice(0, 2);
+  }
+}
+
+
 /**
  * [setUp description]
  */
 function setUp() {
+
   var timelineDIV = d3.select("#timeline");
   var bounds = timelineDIV.node().getBoundingClientRect();
   var svgWidth = bounds.width;
-  var svgHeight = 310;
-  var width = svgWidth - margin.left - margin.right;
-  var height = svgHeight - margin.top - margin.bottom;
+  var svgHeight = 340;
+  var width = svgWidth - margin.left - margin.right;    // right: 50, left: 50,
+  var height = svgHeight - margin.top - margin.bottom - 18;  // top: 10,   bottom: 40,
   var svg = timelineDIV.select("svg") // sets size of svgContainer
+
+  var formatSliderDate = d3.timeFormat('%a %d %I %p');
+  var formatSliderHandler = d3.timeFormat('%a %m/%d %I:%M%p');
 
   x.range([0, width]);
   y.range([height, 0]);
+
+  // adding the slider
+  var slider = d3.select("#slider")
+                 .attr("transform", "translate(50, 10)");
+
+  slider.selectAll("line").remove();
+
+  slider.append("line")
+        .attr("class", "track")
+        .attr("x1", x.range()[0])
+        .attr("x2", x.range()[1])
+      .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
+        .attr("class", "track-inset")
+      .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
+        .attr("class", "track-overlay")
+        .call(d3.drag()
+            .on("start.interrupt", function() { slider.interrupt(); })
+            .on("start drag", function(d) {
+
+              var currentDate = x.invert(d3.event.x);
+              console.log(currentDate)
+
+              var upperAndLowerBound = getClosest(currentDate, theContours.reverse());
+
+              var roundedDate
+              if ((new Date(currentDate) - new Date(upperAndLowerBound[0])) >= (new Date(upperAndLowerBound[1]) - new Date(currentDate))) {
+                roundedDate = upperAndLowerBound[1]
+              } else {
+                roundedDate = upperAndLowerBound[0]
+              }
+
+              setContour(slcMap, roundedDate);
+
+              sliderHandle.attr('cx', x(new Date(roundedDate.time)));
+
+              slider.select('#contourTime').attr("transform", "translate(" + (x(new Date(roundedDate.time)) - 50) + "," + 18 + ")")
+                                           .text(formatSliderHandler(new Date(roundedDate.time)) );
+
+              // theContours.forEach(function(element, index) {
+              //   if currentDate >= element.time and currentDate < theContours[index+1]
+              // })
+
+              // setContour(slcMap, d.data);
+
+              x.invert(d3.event.x); }));
+
+  slider.select('.ticks').remove();
+
+  var trackOverlay = slider.insert("g", ".track-overlay")
+        .attr("class", "ticks")
+        .attr("transform", "translate(0," + 18 + ")")
+      .selectAll("text")
+      .data(x.ticks(9))
+      .enter().append("text")
+           .attr("x", x)
+           .attr("text-anchor", "middle")
+           .text(function(d) { return formatSliderDate(d); });
+
+  slider.select("circle").remove();
+
+  slider.insert("text", ".track-overlay")
+        .attr("id", "contourTime");
+
+  var sliderHandle = slider.insert("circle", ".track-overlay")
+                           .attr("class", "handle")
+                           .attr("r", 9);
+
+  sliderHandle.attr('cx', x(todayDate));
+
+
+  // adding the graph
+  var graph = d3.select('#graph')
+                .attr("transform", "translate(0, 20)")
 
   svg.attr("width", svgWidth)
      .attr("height", svgHeight);
@@ -308,9 +403,9 @@ function setUp() {
      .attr("x", 0 - (height / 2))
      .attr("dy", "1em")
      .style("text-anchor", "middle")
-     .text("PM 2.5 µg/m\u00B3");
+     .text("PM2.5 µg/m\u00B3");
 
-  // disable map moving on timeline
+  // disable map panning on timeline
   document.getElementById('timeline').addEventListener('mouseover', function () {
     theMap.dragging.disable();
   });
@@ -402,6 +497,23 @@ function setupMap() {
       alert("error, request failed!");
       console.log("Error: ", err)
   });
+
+
+  var contoursURL = generateURL(dbEndpoint, '/contours', {'start': pastDate, 'end': today})
+
+  getDataFromDB(contoursURL).then(data => {
+
+    console.log('contour data')
+    console.log(data)
+    theContours = data
+    // process contours data
+    // setContour(slcMap, data);
+
+  }).catch(function(err){
+
+      alert("error, request failed!");
+      console.log("Error: ", err)
+  });
   // ******** start contour stuff ********
 
 
@@ -419,84 +531,128 @@ function setupMap() {
   slcMap.on('focus', () => { slcMap.scrollWheelZoom.enable(); });
   slcMap.on('blur', () => { slcMap.scrollWheelZoom.disable(); });
 
+  // disabling zooming when double clicking
+  slcMap.doubleClickZoom.disable();
+
   // adding new placeholders for leaflet controls
   addControlPlaceholders(slcMap);
 
 
-  var reappearControl = L.control({position: 'verticalcentertopright'});
-  reappearControl.onAdd = function () {
+  var reappearControlContainer = L.control({position: 'verticalcentertopright'});
+  reappearControlContainer.onAdd = function () {
 
     var reappearingButton = document.createElement('div');
     reappearingButton.setAttribute('class', 'reappearingButton');
     reappearingButton.setAttribute('id', 'legend_reappearingButton');
 
     var i_reappearingButton = document.createElement('i');
-    // i_reappearingButton.setAttribute('class', 'fas fa-info fa-2x');
     i_reappearingButton.setAttribute('class', 'aqu_icon fas fa-list fa-2x')
     reappearingButton.appendChild(i_reappearingButton);
 
     return reappearingButton
   }
 
-  reappearControl.addTo(slcMap);
+  reappearControlContainer.addTo(slcMap);
 
   $('.reappearingButton').hide();
 
 
-  // adding the legend
-  var theLegend = L.control({position: 'verticalcentertopright'});
 
-  theLegend.onAdd = function () {
+  // adding the legend container
+  var legendControl = L.control({position: 'verticalcentertopright'});
+
+  legendControl.onAdd = function () {
 
     // adding color legend
-    var legend = L.DomUtil.create('div', 'legend');
-    legend.setAttribute('id', 'legend');
+    var legendContainer = L.DomUtil.create('div', 'legend');
+    legendContainer.setAttribute('id', 'legend');
 
     var colorLegend = L.DomUtil.create('div', 'colorLegend');
     colorLegend.setAttribute('id', 'colorLegend');
-
-    // $('.legend').click(function(e) {
-    //    e.stopPropagation();
-    // });
-
-    var closeButton = document.createElement('div');
-    closeButton.setAttribute('class', 'closeButton');
-    // closeButton.setAttribute('id', 'closeButton');
-
-    var i_closeButton = document.createElement('i');
-    i_closeButton.setAttribute('class', 'aqu_icon_close far fa-window-close fa-2x');
-    closeButton.appendChild(i_closeButton);
-
-    legend.appendChild(colorLegend);
-    legend.appendChild(closeButton);
+    legendContainer.appendChild(colorLegend);
 
 
-    var grades = [0, 12, 35.4, 55.4, 150.4, 250.4];
-    var grades = [0.0, 4.0, 8.0, 12.0, 19.8, 27.6, 35.4, 42.1, 48.7, 55.4, 150.4, 250.4]
+    // close button
+    var closeButtonContainer = document.createElement('div');
+    closeButtonContainer.setAttribute('class', 'closeButton');
+    legendContainer.appendChild(closeButtonContainer);
+
+    var closeButton_i = document.createElement('i');
+    closeButton_i.setAttribute('class', 'aqu_icon_close far fa-window-close fa-2x');
+    closeButtonContainer.appendChild(closeButton_i);
+
+
+
+    // var grades = [0, 12, 35.4, 55.4, 150.4, 250.4];
+    // var grades = [0.0, 4.0, 8.0, 12.0, 19.8, 27.6, 35.4, 42.1, 48.7, 55.4, 150.4, 250.4]
+    var grades = [0.0, 4.0, 8.0, 12.0, 20, 28, 35, 42, 49, 55, 150, 250]
+    var colors = ['green1', 'green2', 'green3', 'yellow1', 'yellow2', 'yellow3', 'orange1', 'orange2', 'orange3', 'red1', 'veryUnhealthyRed1', 'hazardousRed1']
     var colorLabels = [];
     var from;
     var to;
 
-    colorLabels.push("<span id='PM25level' class='legendTitle'>PM2.5 levels:&nbsp;&nbsp;</span>");
+    var title = document.createElement('div');
+    title.setAttribute("id", 'PM25level');
+    title.setAttribute("class", "legendTitle");
+    colorLegend.appendChild(title);
 
-    for (var i = 0; i < grades.length; i++) {
-      from = grades[i];
-      to = grades[i + 1];
+    var theTitleContent = document.createTextNode("PM2.5 [µg/m\u00B3]:");
+    title.appendChild(theTitleContent);
 
-      colorLabels.push(
-        '<label><i class="' + getColor(from + 1) + '"></i> ' +
-        // from + (to ? ' &ndash; ' + to + ' µg/m<sup>3</sup> ' : ' µg/m<sup>3</sup> +'));
-        (to ? from + ' &ndash; ' + to + ' µg/m<sup>3</sup></label>' : 'above ' + from + ' µg/m<sup>3</sup></label>'));
-    }
+    // create colored rectangle
+    var lastElement;
+    colors.forEach(function(aColor, index) {
+      var tmp = document.createElement('div');
+      tmp.setAttribute("class", "colorLegendLabel");
 
-    colorLegend.innerHTML = colorLabels.join('<br>');
+      var colorDiv = document.createElement('div');
+      colorDiv.setAttribute("id", aColor);
+      colorDiv.setAttribute("class", "colorbar " + aColor);
+      tmp.appendChild(colorDiv);
+
+      var span = document.createElement('span');
+      span.setAttribute("class", "tickLegend");
+      span.setAttribute("id", 'tickLegend_' + grades[index])
+      span.textContent = "\u2014 " + grades[index];
+      tmp.appendChild(span);
+
+      lastElement = tmp;
+
+      colorLegend.appendChild(tmp);
+    })
+
+    var lastSpan = document.createElement('span');
+    lastSpan.setAttribute("class", "tickLegend");
+    lastSpan.setAttribute("id", 'tickLegend_350')
+    lastSpan.textContent = "\u2014 350";
+    lastElement.appendChild(lastSpan);
+
+
+
+
+
+
+
+    // colorLabels.push("<span id='PM25level' class='legendTitle'>PM2.5 levels in µg/m<sup>3</sup>:&nbsp;&nbsp;</span>");
+    //
+    // for (var i = 0; i < grades.length; i++) {
+    //   from = grades[i];
+    //   to = grades[i + 1];
+    //
+    //   colorLabels.push(
+    //     '<label><i class="' + getColor(from + 1) + '"></i> ' +
+    //     // from + (to ? ' &ndash; ' + to + ' µg/m<sup>3</sup> ' : ' µg/m<sup>3</sup> +'));
+    //     (to ? from + ' &ndash; ' + to + ' µg/m<sup>3</sup></label>' : 'above ' + from + '</label>'));
+    // }
+    //
+    // colorLegend.innerHTML = colorLabels.join('<br>');
 
     var hr = L.DomUtil.create('hr', 'theHR');
-    legend.appendChild(hr);
+    legendContainer.appendChild(hr);
 
     // adding data source legend
     var datasourceLegend = L.DomUtil.create('div', 'datasourceLegend');
-    legend.appendChild(datasourceLegend);
+    legendContainer.appendChild(datasourceLegend);
 
     var d3div = d3.select(datasourceLegend);
     var titleDataSource = d3div.append('span')
@@ -584,10 +740,11 @@ function setupMap() {
       }
     });
 
-    return legend;
+    return legendContainer;
   };
 
-  theLegend.addTo(slcMap);
+  legendControl.addTo(slcMap);
+
 
   $('#legend .closeButton').on("click", function() {
     console.log('hiding legend');
@@ -605,9 +762,14 @@ function setupMap() {
   $('#controlsForTimeline.closeButton').on("click", function() {
     console.log('hiding controls');
     $('#timelineControls').hide();
-    // $('.reappearingButton').show();
-
+    $('#openTimelineControlButton').show();
   });
+
+  $('#openTimelineControlButton').on("click", function() {
+    console.log('showing he controls for the timeline');
+    $('#openTimelineControlButton').hide();
+    $('#timelineControls').show();
+  })
 
 
   // // You can also put other controls in the same placeholder.
@@ -1333,7 +1495,8 @@ function preprocessDBData(id, sensorData) {
 }
 
 
-function drawChart (){
+function drawChart() {
+
   var svg = d3.select("#timeline svg");
   var bounds = svg.node().getBoundingClientRect();
   var width = bounds.width;
@@ -1422,7 +1585,7 @@ function drawChart (){
     dateFocus.select("#focusTime").attr('text-anchor', 'middle');
     dateFocus.select("#focusTime").attr('y', '40');
 
-    setContour(slcMap, d.data);
+    // setContour(slcMap, d.data);
   }
 
   function mouseout(d) {
