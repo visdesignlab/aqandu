@@ -37,6 +37,8 @@ const margin = {
 let lineArray = [];
 
 let theContours = [];
+let liveSensors = [];
+let liveSensorsData = [];
 
 const dbEndpoint = '/dbapi/api';
 const liveSensorURL_purpleAir = generateURL(dbEndpoint, '/liveSensors', {'type': 'purpleAir'});
@@ -54,6 +56,9 @@ let liveAirUSensors = [];
 let whichTimeRangeToShow = 1;
 
 let currentlySelectedDataSource = 'none';
+
+// ids for the double clicks on the map
+let latestGeneratedID = -1;
 
 
 // function run when page has finished loading all DOM elements and they are ready to use
@@ -75,6 +80,10 @@ function startTheWholePage() {
 
   drawSensorOnMap();
 
+  getContourData();
+  // get all sensor data for interactive brushing
+  // getAllSensorData()
+
   // there is new data every minute for a sensor in the db
   setInterval('updateDots()', 60000);  // 60'000 = 60'000 miliseconds = 60 seconds = 1 min
   setInterval('updateSensors()', 300000); // update every 5min
@@ -92,46 +101,46 @@ function startTheWholePage() {
   // L.control.layers(null, overlayMaps).addTo(theMap);
 
   // adding help buttons
-  $('.legendTitle').append('<span class="helpIcon"></span>')
-  $('.helpIcon').append('<i class="moreInfo far fa-question-circle"></i>')
-  $('.helpIcon').on('click', d => {
-  // $('.moreInfo').on('mouseover', d => {
-
-    var legendTitlePosition_x;
-    var legendTitlePosition_y;
-    if (d.currentTarget.parentElement.id === 'PM25level') {
-      legendTitlePosition_x = $('#PM25level')[0].getBoundingClientRect().left;
-      legendTitlePosition_y = $('#PM25level')[0].getBoundingClientRect().top;
-
-    } else if (d.currentTarget.parentElement.id === 'datasource') {
-      legendTitlePosition_x = $('#datasource')[0].getBoundingClientRect().left;
-      legendTitlePosition_y = $('#datasource')[0].getBoundingClientRect().top;
-
-    } else {
-      console.log("unknown legend title")
-    }
-
-
-    // var mainOffset_x = $('.legendTitle')[0].getBoundingClientRect().left
-    // var mainOffset_y = $('.legendTitle')[0].getBoundingClientRect().top
-
-    // var x = $(d3div.node()).offset().left;
-    // var y = $(d3div.node()).offset().top;
-
-    $('.tooltip').removeClass('hidden');
-    $('.tooltip').addClass('show');
-    $('.tooltip').addClass('rightTriangle');
-
-    var tooltipHeight = $('.tooltip').height();
-    var tooltipWidth = $('.tooltip').width();
-    // console.log(tooltipHeight);
-
-    d3.select('.tooltip')
-      // .style("left", (x - mainOffset_x) + "px")
-      // .style("top", (y - mainOffset_y - tooltipHeight - 6 - 6 - 6 - 3) + "px")
-      .style("left", (legendTitlePosition_x - tooltipWidth - 20) + "px")
-      .style("top", (legendTitlePosition_y - 15) + "px")
-  })
+  // $('.legendTitle').append('<span class="helpIcon"></span>')
+  // $('.helpIcon').append('<i class="moreInfo far fa-question-circle"></i>')
+  // $('.helpIcon').on('click', d => {
+  // // $('.moreInfo').on('mouseover', d => {
+  //
+  //   var legendTitlePosition_x;
+  //   var legendTitlePosition_y;
+  //   if (d.currentTarget.parentElement.id === 'PM25level') {
+  //     legendTitlePosition_x = $('#PM25level')[0].getBoundingClientRect().left;
+  //     legendTitlePosition_y = $('#PM25level')[0].getBoundingClientRect().top;
+  //
+  //   } else if (d.currentTarget.parentElement.id === 'datasource') {
+  //     legendTitlePosition_x = $('#datasource')[0].getBoundingClientRect().left;
+  //     legendTitlePosition_y = $('#datasource')[0].getBoundingClientRect().top;
+  //
+  //   } else {
+  //     console.log("unknown legend title")
+  //   }
+  //
+  //
+  //   // var mainOffset_x = $('.legendTitle')[0].getBoundingClientRect().left
+  //   // var mainOffset_y = $('.legendTitle')[0].getBoundingClientRect().top
+  //
+  //   // var x = $(d3div.node()).offset().left;
+  //   // var y = $(d3div.node()).offset().top;
+  //
+  //   $('.tooltip').removeClass('hidden');
+  //   $('.tooltip').addClass('show');
+  //   $('.tooltip').addClass('rightTriangle');
+  //
+  //   var tooltipHeight = $('.tooltip').height();
+  //   var tooltipWidth = $('.tooltip').width();
+  //   // console.log(tooltipHeight);
+  //
+  //   d3.select('.tooltip')
+  //     // .style("left", (x - mainOffset_x) + "px")
+  //     // .style("top", (y - mainOffset_y - tooltipHeight - 6 - 6 - 6 - 3) + "px")
+  //     .style("left", (legendTitlePosition_x - tooltipWidth - 20) + "px")
+  //     .style("top", (legendTitlePosition_y - 15) + "px")
+  // })
 
   // preventing click on timeline to generate map event (such as creating dot for getting AQ)
   var timelineDiv = L.DomUtil.get('timeline');
@@ -163,7 +172,6 @@ function startTheWholePage() {
   // $('nav').hide();
   // $('.legend').hide();
 
-
 };
 
 
@@ -183,7 +191,6 @@ function init() {
     setUp();
 
 
-
     // which IDs are there
     let lineData = [];
     lineArray.forEach(function(aLine) {
@@ -197,6 +204,10 @@ function init() {
     lineData.forEach(function(aLine) {
       reGetGraphData(aLine.id, aLine.sensorSource, aLine.aggregation);
     });
+
+    // need to do the same for the contours TODO
+    getContourData();
+
   });
 
   // add the submit event
@@ -236,12 +247,17 @@ function getAggregation(timeRange) {
 
 
 function getClosest(num, ar) {
-  if (num < ar[0].time) {
-    return ar[0].time;
-  } else if (num > ar[ar.length - 1].time) {
-    return ar[ar.length - 1].time;
+  var contourArray = ar;
+  contourArray.sort((a, b) => (new Date(a.time) > new Date(b.time)) ? 1 : ((new Date(b.time) > new Date(a.time)) ? -1 : 0))
+  if (num < new Date(contourArray[0].time)) {
+    // console.log('lowest');
+    return [contourArray[0], contourArray[0]];
+  } else if (num > new Date(contourArray[contourArray.length - 1].time)) {
+    // console.log('highest')
+    return [contourArray[contourArray.length - 1], contourArray[contourArray.length - 1]];
   } else {
-    return ar.sort((a, b) => Math.abs(new Date(a.time) - new Date(num)) - Math.abs(new Date(b.time) - new Date(num))).slice(0, 2);
+    // console.log('inbetween')
+    return contourArray.sort((a, b) => Math.abs(new Date(a.time) - new Date(num)) - Math.abs(new Date(b.time) - new Date(num))).slice(0, 2);
   }
 }
 
@@ -286,16 +302,39 @@ function setUp() {
               var currentDate = x.invert(d3.event.x);
               console.log(currentDate)
 
+              // set the contour
+              // theContours.sort((a, b) => Math.abs(new Date(a.time) - new Date(num)) - Math.abs(new Date(b.time) - new Date(num)))
               var upperAndLowerBound = getClosest(currentDate, theContours.reverse());
 
               var roundedDate
-              if ((new Date(currentDate) - new Date(upperAndLowerBound[0])) >= (new Date(upperAndLowerBound[1]) - new Date(currentDate))) {
+              if ((new Date(currentDate) - new Date(upperAndLowerBound[0].time)) >= (new Date(upperAndLowerBound[1].time) - new Date(currentDate))) {
                 roundedDate = upperAndLowerBound[1]
               } else {
                 roundedDate = upperAndLowerBound[0]
               }
 
               setContour(slcMap, roundedDate);
+
+              // set the sensorData
+              var sensorValuesForGivenTime = {};
+              liveSensorsData.forEach(function(aLiveSensorData) {
+                var upperAndLowerBoundSensorData = getClosest(currentDate, aLiveSensorData['pmData'].reverse());
+
+                var roundedDateSensorData
+                if ((new Date(currentDate) - new Date(upperAndLowerBoundSensorData[0].time)) >= (new Date(upperAndLowerBoundSensorData[1].time) - new Date(currentDate))) {
+                  roundedDateSensorData = upperAndLowerBoundSensorData[1]
+                } else {
+                  roundedDateSensorData = upperAndLowerBoundSensorData[0]
+                }
+
+                // console.log(aLiveSensorData.id + ' -- ' + roundedDateSensorData.time + ': ' + roundedDateSensorData.pm25);
+
+                // setContour(slcMap, roundedDateSensorData);
+                sensorValuesForGivenTime[aLiveSensorData.id] = {'time': roundedDateSensorData.time, 'pm25': roundedDateSensorData.pm25, 'sensorSource': aLiveSensorData.sensorSource, 'sensorModel': aLiveSensorData.sensorModel};
+              });
+
+              setDotValues(sensorValuesForGivenTime);
+
 
               sliderHandle.attr('cx', x(new Date(roundedDate.time)));
 
@@ -308,7 +347,8 @@ function setUp() {
 
               // setContour(slcMap, d.data);
 
-              x.invert(d3.event.x); }));
+              // x.invert(d3.event.x);
+            }));
 
   slider.select('.ticks').remove();
 
@@ -499,21 +539,25 @@ function setupMap() {
   });
 
 
-  var contoursURL = generateURL(dbEndpoint, '/contours', {'start': pastDate, 'end': today})
 
-  getDataFromDB(contoursURL).then(data => {
-
-    console.log('contour data')
-    console.log(data)
-    theContours = data
-    // process contours data
-    // setContour(slcMap, data);
-
-  }).catch(function(err){
-
-      alert("error, request failed!");
-      console.log("Error: ", err)
-  });
+  // var contoursURL = generateURL(dbEndpoint, '/contours', {'start': pastDate, 'end': today})
+  //
+  // getDataFromDB(contoursURL).then(data => {
+  //
+  //   console.log(contoursURL)
+  //
+  //   console.log('contour data')
+  //   console.log(data)
+  //   theContours = data
+  //   // theContours.sort((a, b) => Math.abs(new Date(a.time) - new Date(b.time)) - Math.abs(new Date(b.time) - new Date(a.time)))
+  //   // process contours data
+  //   // setContour(slcMap, data);
+  //
+  // }).catch(function(err){
+  //
+  //     alert("error, request failed!");
+  //     console.log("Error: ", err)
+  // });
   // ******** start contour stuff ********
 
 
@@ -577,16 +621,24 @@ function setupMap() {
     closeButtonContainer.setAttribute('class', 'closeButton');
     legendContainer.appendChild(closeButtonContainer);
 
-    var closeButton_i = document.createElement('i');
-    closeButton_i.setAttribute('class', 'aqu_icon_close far fa-window-close fa-2x');
-    closeButtonContainer.appendChild(closeButton_i);
+    // var closeButton_i = document.createElement('i');
+    // closeButton_i.setAttribute('class', 'aqu_icon_close far fa-window-close fa-2x');
+    // closeButtonContainer.appendChild(closeButton_i);
+    var closeButton_a = document.createElement('a');
+    closeButton_a.setAttribute('class', 'closeButton_a');
+    closeButton_a.setAttribute('href', "#");
+    var createAText = document.createTextNode('X');
+    closeButton_a.appendChild(createAText);
+    closeButtonContainer.appendChild(closeButton_a);
 
 
 
     // var grades = [0, 12, 35.4, 55.4, 150.4, 250.4];
     // var grades = [0.0, 4.0, 8.0, 12.0, 19.8, 27.6, 35.4, 42.1, 48.7, 55.4, 150.4, 250.4]
-    var grades = [0.0, 4.0, 8.0, 12.0, 20, 28, 35, 42, 49, 55, 150, 250]
-    var colors = ['green1', 'green2', 'green3', 'yellow1', 'yellow2', 'yellow3', 'orange1', 'orange2', 'orange3', 'red1', 'veryUnhealthyRed1', 'hazardousRed1']
+
+    // reversed both grades and colors array
+    var grades = [4, 8, 12, 20, 28, 35, 42, 49, 55, 150, 250, 350].reverse()
+    var colors = ['green1', 'green2', 'green3', 'yellow1', 'yellow2', 'yellow3', 'orange1', 'orange2', 'orange3', 'red1', 'veryUnhealthyRed1', 'hazardousRed1'].reverse()
     var colorLabels = [];
     var from;
     var to;
@@ -623,8 +675,8 @@ function setupMap() {
 
     var lastSpan = document.createElement('span');
     lastSpan.setAttribute("class", "tickLegend");
-    lastSpan.setAttribute("id", 'tickLegend_350')
-    lastSpan.textContent = "\u2014 350";
+    lastSpan.setAttribute("id", 'tickLegend_0')
+    lastSpan.textContent = "\u2014 0";
     lastElement.appendChild(lastSpan);
 
 
@@ -855,8 +907,14 @@ function setupMap() {
     var clickLocation = location.latlng;
     console.log(clickLocation);
 
+    // creating the ID for the marker
+    var markerID = latestGeneratedID + 1;
+    latestGeneratedID = markerID;
+    markerID = 'personalMarker_' + markerID;
+
+
     // create Dot
-    var randomClickMarker = [{'Latitude': String(clickLocation['lat']), 'Longitude': String(clickLocation['lng'])}]
+    var randomClickMarker = [{'ID': markerID, 'Sensor Source': 'sensorLayerRandomMarker', 'Latitude': String(clickLocation['lat']), 'Longitude': String(clickLocation['lng'])}]
     sensorLayerRandomMarker(randomClickMarker)
 
 
@@ -877,7 +935,7 @@ function setupMap() {
       // parse the incoming bilinerar interpolated data
       var processedData = data.map((d) => {
         return {
-          // id: id,
+          id: markerID,
           time: new Date(d.time),
           pm25: d.pm25,
           contour: d.contour
@@ -887,7 +945,7 @@ function setupMap() {
       });
 
       // var newLine = {id: id, sensorSource: sensorSource, sensorData: processedSensorData};
-      var newLine = {sensorData: processedData};
+      var newLine = {id: markerID, sensorSource: 'sensorLayerRandomMarker', sensorData: processedData};
 
       // pushes data for this specific line to an array so that there can be multiple lines updated dynamically on Click
       lineArray.push(newLine)
@@ -1035,7 +1093,14 @@ function drawSensorOnMap() {
 
     sensorLayer(response);
 
-    }).catch((err) => {
+    data.forEach(function(aSensor) {
+      liveSensors.push({'id': aSensor.ID, 'sensorSource': aSensor['Sensor Source']});
+    });
+
+    getAllSensorData();
+
+
+  }).catch((err) => {
       alert('error, request failed!');
       console.log('Error: ', err)
   });
@@ -1182,7 +1247,8 @@ function createRandomClickMarker(markerData) {
   if (markerData.Latitude !== null && markerData.Longitude !== null) {
     let classList = 'dot';
 
-    let theColor = 'hazardousRed'
+    // let theColor = 'hazardousRed'
+    let theColor = 'dblclickOnMap'
 
     // let theColor = getColor(markerData["pm25"]);
     // console.log(item["ID"] + ' ' + theColor + ' ' + item["pm25"])
@@ -1198,9 +1264,73 @@ function createRandomClickMarker(markerData) {
       { icon: L.divIcon(dotIcon) }
     ).addTo(sensLayer);
 
-    mark.id = 'sensorLayerRandomMarker';
+    // mark.id = 'sensorLayerRandomMarker';
+    mark.id = markerData['ID'];
+
+    mark.bindPopup(
+      L.popup({closeButton: false, className: 'sensorInformationPopup'}).setContent('<span class="popup">' + markerData["Sensor Source"] + ': ' + markerData.ID + '</span>'))
 
   }
+}
+
+
+// get the data for the contours between start and end
+function getContourData() {
+  console.log(pastDate)
+  console.log(today)
+
+  var contoursURL = generateURL(dbEndpoint, '/contours', {'start': pastDate, 'end': today})
+
+  getDataFromDB(contoursURL).then(data => {
+
+    console.log(contoursURL)
+
+    console.log('contour data')
+    console.log(data)
+    theContours = data
+    // theContours.sort((a, b) => Math.abs(new Date(a.time) - new Date(b.time)) - Math.abs(new Date(b.time) - new Date(a.time)))
+    // process contours data
+    // setContour(slcMap, data);
+
+  }).catch(function(err){
+
+      alert("error, request failed!");
+      console.log("Error: ", err)
+  });
+}
+
+
+// get through all live sensors and load their data (past 24hours)
+function getAllSensorData() {
+
+  liveSensors.forEach(function(aLiveSensor) {
+
+    var route = '/rawDataFrom?';
+    var parameters = {'id': aLiveSensor.id, 'sensorSource': aLiveSensor.sensorSource, 'start': pastDate, 'end': today, 'show': 'pm25'};
+
+    var aSensorRawDataURL = generateURL(dbEndpoint, route, parameters)
+
+    getDataFromDB(aSensorRawDataURL).then(data => {
+
+      console.log(aSensorRawDataURL)
+
+      console.log('a sensor data')
+      console.log(data)
+      liveSensorsData.push({'id': data.tags[0]['ID'], 'pmData': data.data, 'sensorModel': data.tags[0]['Sensor Model'], 'sensorSource': data.tags[0]['Sensor Source']})
+      // theContours.sort((a, b) => Math.abs(new Date(a.time) - new Date(b.time)) - Math.abs(new Date(b.time) - new Date(a.time)))
+      // process contours data
+      // setContour(slcMap, data);
+
+    }).catch(function(err){
+
+        alert("error, request failed!");
+        console.log("Error: ", err)
+    });
+
+
+  })
+
+
 }
 
 
@@ -1220,8 +1350,9 @@ function updateDots() {
     });
 
     sensLayer.eachLayer(function(layer) {
-      // console.log(layer.id)
-      if (layer.id !== "sensorLayerRandomMarker") {
+      // if (layer.id !== "sensorLayerRandomMarker") {
+      // if (data[layer.id]['Sensor Source'] !== "sensorLayerRandomMarker") {
+      if (data[layer.id] !== undefined) {
         let currentTime = new Date().getTime()
         let timeLastMeasurement = new Date(data[layer.id].time).getTime();
         let minutesINBetween = (currentTime - timeLastMeasurement) / (1000 * 60);
@@ -1239,8 +1370,6 @@ function updateDots() {
           theColor = getColor(currentPM25);
         }
 
-
-
         console.log(layer.id + ' ' + theColor + ' ' + currentPM25)
         $(layer._icon).removeClass(epaColors.join(' '))
         $(layer._icon).addClass(theColor)
@@ -1251,6 +1380,31 @@ function updateDots() {
     alert("error, request failed!");
     console.log("Error: ", err);
     console.warn(arguments);
+  });
+}
+
+// gets object of sensor values for a given timestamp and sets the sensors dots to the right color
+function setDotValues(sensorValues) {
+
+  sensLayer.eachLayer(function(layer) {
+    if (sensorValues[layer.id] !== undefined) {
+      // let currentTime = new Date().getTime()
+      // let timeLastMeasurement = new Date(data[layer.id].time).getTime();
+      // let minutesINBetween = (currentTime - timeLastMeasurement) / (1000 * 60);
+
+      let pm25Value = conversionPM(sensorValues[layer.id].pm25, sensorValues[layer.id].sensorSource, sensorValues[layer.id].sensorModel)
+
+      let theColor = getColor(pm25Value);
+      // if (data[layer.id]['Sensor Source'] === 'airu') {
+      //     theColor = getColor(currentPM25);
+      // } else {
+      //   theColor = getColor(currentPM25);
+      // }
+
+      // console.log(layer.id + ' ' + theColor + ' ' + currentPM25)
+      $(layer._icon).removeClass(epaColors.join(' '))
+      $(layer._icon).addClass(theColor)
+    }
   });
 }
 
@@ -1539,7 +1693,9 @@ function drawChart() {
   lines.enter().append("path") // looks at data not associated with path and then pairs it
        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
        .attr("d", d => { return valueline(d.sensorData); })
-       .attr("class", d => 'line-style line' + d.id)
+       .attr("class", d => {
+         console.log(d.id);
+         return 'line-style line' + d.id; })
        .attr("id", function(d) { return 'line_' + d.id; });
        // .attr("stroke", d => lineColor(d.id)); //no return for d function, see above for example
 
@@ -1649,8 +1805,8 @@ function drawChart() {
 }
 
 
-function getGraphData(mark, aggregation) {
-  findNearestSensor(findCorners(mark.getLatLng()), mark, function (sensor) {
+// function getGraphData(mark, aggregation) {
+//   findNearestSensor(findCorners(mark.getLatLng()), mark, function (sensor) {
     // mark = mark.bindPopup('<p>'+ sensor["ID"] +'</p>').openPopup();
 
     // get the data displayed in the timeline
@@ -1669,14 +1825,16 @@ function getGraphData(mark, aggregation) {
 
       // var aggregation = false;
 
+function getGraphData(sensorID, sensorSource, aggregation) {
+
       let theRoute = '';
       let parameters = {};
       if (!aggregation) {
         theRoute = '/rawDataFrom?';
-        parameters = {'id': sensor['ID'], 'sensorSource': sensor['SensorSource'], 'start': pastDate, 'end': today, 'show': 'pm25'};
+        parameters = {'id': sensorID, 'sensorSource': sensorSource, 'start': pastDate, 'end': today, 'show': 'pm25'};
       } else if (aggregation) {
         theRoute = '/processedDataFrom?';
-        parameters = {'id': sensor['ID'], 'sensorSource': sensor['SensorSource'], 'start': pastDate, 'end': today, 'function': 'mean', 'functionArg': 'pm25', 'timeInterval': '5m'}; // 60m
+        parameters = {'id': sensorID, 'sensorSource': sensorSource, 'start': pastDate, 'end': today, 'function': 'mean', 'functionArg': 'pm25', 'timeInterval': '5m'}; // 60m
       } else {
         console.log('hmmmm problem');
       }
@@ -1686,7 +1844,7 @@ function getGraphData(mark, aggregation) {
 
       getDataFromDB(url).then(data => {
 
-          preprocessDBData(sensor["ID"], data)
+          preprocessDBData(sensorID, data)
 
       }).catch(function(err){
 
@@ -1694,7 +1852,7 @@ function getGraphData(mark, aggregation) {
           console.log("Error: ", err)
       });
     // }
-  });
+  // });
 }
 
 
@@ -1815,7 +1973,16 @@ function populateGraph() {
       d3.select(this._icon).classed('sensor-selected', true);
 
       let aggregation = getAggregation(whichTimeRangeToShow);
-      getGraphData(this, aggregation);
+
+      // get the sensor source
+
+      if (d3.select(this._icon).attr("class").split(" ").includes("airu")) {
+        getGraphData(this.id, "airu", aggregation);
+      } else {
+        getGraphData(this.id, "Purple Air", aggregation);
+      }
+
+
     }
   }
 }

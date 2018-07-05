@@ -54,6 +54,9 @@ p {
   margin: 1em 0;
 }
 
+/* .paddedContainer {
+  padding-top: 4rem!important;
+} */
 
 p.description {
   text-align: justify;
@@ -80,6 +83,11 @@ p.description-centered.boxed.spaced {
 .description.smaller {
   font-size: 12px;
   text-align: justify;
+}
+
+
+.description li {
+  font-size: 18px;
 }
 
 

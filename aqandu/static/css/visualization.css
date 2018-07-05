@@ -1,3 +1,8 @@
+#mainpage {
+  height: 100%;
+  width: 100%;
+}
+
 #SLC-map {
   position: absolute;
   top: 0px;
@@ -255,13 +260,34 @@ input:valid ~ span.validity:after {
   position: absolute;
   top: 0px;
   right: 0px;
+
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+
+  border: 2px solid rgba(0,0,0,0.4);
+  border-radius: 4px;
+}
+
+.closeButton a {
+  display: block;
+  text-align: center;
+  font-size: 22px;
+
+  color: #000000;
+
+  text-decoration: none;
+}
+
+.closeButton a:hover {
+  background-color: #f2f2f2;
 }
 
 
 #openTimelineControlButton {
   position: absolute;
   top: 28px;
-  right: 45px;
+  right: 10px;
 
   width: 32px;
   height: 32px;
@@ -329,19 +355,25 @@ input:valid ~ span.validity:after {
   /* margin-top: 10px; */
   position: absolute;
   padding: 0px 5px 0px;
-  display: block;
+  /* display: block; */
   z-index: 1025;
   width: 100%;
-  top: 50;
+  /* top: 50; */
   bottom: 0;
   background-color: #ffffff;
   height: 37%;
 }
 
+@media only screen and (max-height: 900px) {
+  #timeline {
+    bottom: -37%;
+  }
+}
+
 #timelineControls {
   position: absolute;
   top: 30px;
-  right: 45px;
+  right: 10px;
 
   padding: 5px;
 }
@@ -415,7 +447,7 @@ input:valid ~ span.validity:after {
   box-shadow: 0 0 15px rgba(0,0,0,0.2);
   border-radius: 5px;
   /* width: 100px; */
-  height: 360px;     /*243px;*/   /*102px;*/
+  height: 447px;     /*243px;*/   /*102px;*/
   float: left;
   margin-right: 8px;
   opacity: 0.9;
@@ -423,7 +455,10 @@ input:valid ~ span.validity:after {
 
   background: white;
   display: inline-block;
+
+  min-width: 117px;
 }
+
 #legend label.sensorType {
   font-family: 'Open Sans', sans-serif;
   font-weight: 400;
@@ -469,7 +504,7 @@ input:valid ~ span.validity:after {
   font-size: 8pt;
   line-height: 18px;
 
-  margin-bottom: .2em;
+  margin-bottom: 1.5em;
 }
 #colorLegend label {
   font-family: 'Open Sans', sans-serif;
@@ -586,13 +621,18 @@ input:valid ~ span.validity:after {
   height: 34px;
 }
 
+.dot.dblclickOnMap {
+  background-color: rgb(55, 126, 184);
+}
+
 
 #PM25level {
   margin-bottom: 5px;
 }
 
 #tickLegend_0 {
-  bottom: 10px;
+  bottom: -5px;
+  left: -25px;
 }
 
 #tickLegend_4 {
@@ -604,7 +644,7 @@ input:valid ~ span.validity:after {
 }
 
 #tickLegend_12 {
-  bottom: 17px;
+  bottom: 11px;
 }
 
 #tickLegend_20 {
@@ -628,7 +668,7 @@ input:valid ~ span.validity:after {
 }
 
 #tickLegend_55 {
-  bottom: 39px;
+  bottom: 15px;
 }
 
 #tickLegend_150 {
@@ -636,11 +676,12 @@ input:valid ~ span.validity:after {
 }
 
 #tickLegend_250 {
-  bottom: 33px;
+  bottom: 39px;
 }
 
 #tickLegend_350 {
-  bottom: -5px;
+  bottom: 33px;
+  /* left: -37px; */
 }
 
 .line-style {

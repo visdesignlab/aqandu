@@ -4,7 +4,7 @@
 
 // TODO move from http to https
 
-var baseURL = 'http://air.eng.utah.edu';
+var baseURL = 'https://air.eng.utah.edu';
 
 
 function generateURL(anEndpoint, route, parameters) { // eslint-disable-line no-unused-vars
