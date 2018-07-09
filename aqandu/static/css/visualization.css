@@ -172,6 +172,12 @@ svg text {
 } */
 
 #timelineControls {
+  position: absolute;
+  top: 30px;
+  right: 10px;
+
+  padding: 5px;
+
   background-color: rgba(255,255,255,0.7);
 
   box-shadow: 0 0 15px rgba(0,0,0,0.2);
@@ -261,18 +267,24 @@ input:valid ~ span.validity:after {
   top: 0px;
   right: 0px;
 
+  background-color: #ffffff;
+
   width: 30px;
   height: 30px;
-  line-height: 30px;
+  line-height: 26px;
 
   border: 2px solid rgba(0,0,0,0.4);
   border-radius: 4px;
+
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 400;
 }
 
 .closeButton a {
   display: block;
   text-align: center;
   font-size: 22px;
+  font-weight: 400;
 
   color: #000000;
 
@@ -289,12 +301,17 @@ input:valid ~ span.validity:after {
   top: 28px;
   right: 10px;
 
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
+  line-height: 26px;
   border: 2px solid rgba(0,0,0,0.4);
   /* position: relative; */
   background-color: #fff;
   border-radius: 4px;
+
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
 }
 
 
@@ -370,14 +387,6 @@ input:valid ~ span.validity:after {
   }
 }
 
-#timelineControls {
-  position: absolute;
-  top: 30px;
-  right: 10px;
-
-  padding: 5px;
-}
-
 
 /* SLIDER */
 .track,
@@ -422,7 +431,7 @@ input:valid ~ span.validity:after {
 .leaflet-verticalcentertop {
   position: absolute;
   z-index: 1000; /* <-- new line! */
-  top: 10%;
+  top: 17%;
   transform: translateY(-10%);
   padding-top: 10px;
 }

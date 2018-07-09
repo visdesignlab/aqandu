@@ -1,12 +1,8 @@
 {% extends "base.html" %}
 {% block head %}
   {{ super() }}
-  <!-- <link rel="stylesheet" href="https://unpkg.com/leaflet@1.1.0/dist/leaflet.css" integrity="sha512-wcw6ts8Anuw10Mzh9Ytw4pylW8+NAD4ch3lqm9lzAsTxg0GFeJgoAtxuCLREZSC5lUXdVyo/7yfsqFjQ4S+aKw==" crossorigin=""/> -->
 
-  <!-- Make sure you put this AFTER Leaflet's CSS -->
-  <!-- <script src="https://unpkg.com/leaflet@1.1.0/dist/leaflet.js" integrity="sha512-mNqn2Wg7tSToJhvHcqfzLMU6J4mkOImSPTxVZAdo+lcPlk+GhZmYgACEe0x35K7YzW1zJ7XyJV/TT1MrdXvMcA==" crossorigin=""></script> -->
-
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin=""/>
+  <!-- <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin=""/> -->
 
   <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin=""></script>
 
@@ -15,8 +11,7 @@
   <script src="https://d3js.org/d3.v4.js"></script>
   <script src="static/js/d3-geo.min.js"></script>
 
-  <script src="static/js/leaflet-heat.js"></script>
-  <!-- <script src="static/js/simpleheat.js"></script> -->
+  <!-- <script src="static/js/leaflet-heat.js"></script> -->
   <!-- <script src="http://maps.stamen.com/js/tile.stamen.js"></script> -->
   <script src="https://stamen-maps.a.ssl.fastly.net/js/tile.stamen.js"></script>
 
@@ -54,15 +49,11 @@
           </svg>
           <div id="timelineControls">
             <div>
-              <button id="clearDataButton" onclick="clearData()">Clear Data</button>
-            </div>
-
-            <div>
               <input type="radio" id="timeRange_24h" name="timeRange" value="1" checked>
               <label for="timeRange_24h">past 24 hours</label>
-            </div>
+            <!-- </div>
 
-            <div>
+            <div> -->
               <input type="radio" id="timeRange_3d" name="timeRange" value="3">
               <label for="timeRange_3d">past 3 days</label>
             </div>
@@ -80,7 +71,8 @@
             <form id="sensorDataSearchForm">
               <div id="search">
                 <div>
-                  <label for="sensorDataSearch">Show data for airU sensor with sensor ID:</label>
+                  <!-- <label for="sensorDataSearch">Show data for airU sensor with sensor ID:</label> -->
+                  <label for="sensorDataSearch">Show data for airU sensor:</label>
                   <input type="search" id="sensorDataSearch" name="q" placeholder="S-A-XXX" required size="7" pattern="S-A-[0-9]{3}" aria-label="Search for the data of your airU sensor">
                   <button><i class="fa fa-search"></i></button>
                   <span class="validity"></span>
@@ -90,6 +82,11 @@
                 </div>
               </div>
             </form>
+
+            <div>
+              <button id="clearDataButton" onclick="clearData()">Clear Data</button>
+            </div>
+
           </div>
           <div id="openTimelineControlButton"><i class='aqu_icon fas fa-list fa-2x'></i></div>
       </div>

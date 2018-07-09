@@ -213,6 +213,7 @@ function init() {
   // add the submit event
   $('#sensorDataSearchForm').on('submit', function(e) {
       e.preventDefault();  //prevent form from submitting
+      document.getElementById('errorInformation').textContent = ''
       let data = $("#sensorDataSearchForm :input").serializeArray();
       console.log(data[0].value);
 
@@ -315,25 +316,26 @@ function setUp() {
 
               setContour(slcMap, roundedDate);
 
-              // set the sensorData
-              var sensorValuesForGivenTime = {};
-              liveSensorsData.forEach(function(aLiveSensorData) {
-                var upperAndLowerBoundSensorData = getClosest(currentDate, aLiveSensorData['pmData'].reverse());
-
-                var roundedDateSensorData
-                if ((new Date(currentDate) - new Date(upperAndLowerBoundSensorData[0].time)) >= (new Date(upperAndLowerBoundSensorData[1].time) - new Date(currentDate))) {
-                  roundedDateSensorData = upperAndLowerBoundSensorData[1]
-                } else {
-                  roundedDateSensorData = upperAndLowerBoundSensorData[0]
-                }
-
-                // console.log(aLiveSensorData.id + ' -- ' + roundedDateSensorData.time + ': ' + roundedDateSensorData.pm25);
-
-                // setContour(slcMap, roundedDateSensorData);
-                sensorValuesForGivenTime[aLiveSensorData.id] = {'time': roundedDateSensorData.time, 'pm25': roundedDateSensorData.pm25, 'sensorSource': aLiveSensorData.sensorSource, 'sensorModel': aLiveSensorData.sensorModel};
-              });
-
-              setDotValues(sensorValuesForGivenTime);
+// the get all sensor data piece
+              // // set the sensorData
+              // var sensorValuesForGivenTime = {};
+              // liveSensorsData.forEach(function(aLiveSensorData) {
+              //   var upperAndLowerBoundSensorData = getClosest(currentDate, aLiveSensorData['pmData'].reverse());
+              //
+              //   var roundedDateSensorData
+              //   if ((new Date(currentDate) - new Date(upperAndLowerBoundSensorData[0].time)) >= (new Date(upperAndLowerBoundSensorData[1].time) - new Date(currentDate))) {
+              //     roundedDateSensorData = upperAndLowerBoundSensorData[1]
+              //   } else {
+              //     roundedDateSensorData = upperAndLowerBoundSensorData[0]
+              //   }
+              //
+              //   // console.log(aLiveSensorData.id + ' -- ' + roundedDateSensorData.time + ': ' + roundedDateSensorData.pm25);
+              //
+              //   // setContour(slcMap, roundedDateSensorData);
+              //   sensorValuesForGivenTime[aLiveSensorData.id] = {'time': roundedDateSensorData.time, 'pm25': roundedDateSensorData.pm25, 'sensorSource': aLiveSensorData.sensorSource, 'sensorModel': aLiveSensorData.sensorModel};
+              // });
+              //
+              // setDotValues(sensorValuesForGivenTime);
 
 
               sliderHandle.attr('cx', x(new Date(roundedDate.time)));
@@ -586,7 +588,7 @@ function setupMap() {
   reappearControlContainer.onAdd = function () {
 
     var reappearingButton = document.createElement('div');
-    reappearingButton.setAttribute('class', 'reappearingButton');
+    reappearingButton.setAttribute('class', 'closeButton');
     reappearingButton.setAttribute('id', 'legend_reappearingButton');
 
     var i_reappearingButton = document.createElement('i');
@@ -598,7 +600,7 @@ function setupMap() {
 
   reappearControlContainer.addTo(slcMap);
 
-  $('.reappearingButton').hide();
+  $('#legend_reappearingButton').hide();
 
 
 
@@ -765,7 +767,7 @@ function setupMap() {
 
           currentlySelectedDataSource = 'none'
         } else {
-          // moved from one element to another wiuthout first unchecking it
+          // moved from one element to another without first unchecking it
 
           d3.select(d3.event.currentTarget).classed('clickedLegendElement', true)
 
@@ -801,13 +803,13 @@ function setupMap() {
   $('#legend .closeButton').on("click", function() {
     console.log('hiding legend');
     $('.legend').hide();
-    $('.reappearingButton').show();
+    $('#legend_reappearingButton').show();
   });
 
-  $('.reappearingButton').on("click", function() {
+  $('#legend_reappearingButton').on("click", function() {
     console.log('showing color legend');
     $('.legend').show();
-    $('.reappearingButton').hide();
+    $('#legend_reappearingButton').hide();
   });
 
 
@@ -818,7 +820,7 @@ function setupMap() {
   });
 
   $('#openTimelineControlButton').on("click", function() {
-    console.log('showing he controls for the timeline');
+    console.log('showing the controls for the timeline');
     $('#openTimelineControlButton').hide();
     $('#timelineControls').show();
   })
@@ -900,7 +902,8 @@ function setupMap() {
   // legend.addTo(slcMap);
 
   // Change the position of the Zoom Control to a newly created placeholder.
-  slcMap.zoomControl.setPosition('verticalcenterbottomright');
+  // slcMap.zoomControl.setPosition('verticalcenterbottomright');
+  slcMap.zoomControl.setPosition('verticalcentertopleft');
 
   slcMap.on("dblclick", function(location) {
 
@@ -1097,7 +1100,8 @@ function drawSensorOnMap() {
       liveSensors.push({'id': aSensor.ID, 'sensorSource': aSensor['Sensor Source']});
     });
 
-    getAllSensorData();
+// removed this call to get all sensor Data TODO
+    // getAllSensorData();
 
 
   }).catch((err) => {
@@ -1268,7 +1272,18 @@ function createRandomClickMarker(markerData) {
     mark.id = markerData['ID'];
 
     mark.bindPopup(
-      L.popup({closeButton: false, className: 'sensorInformationPopup'}).setContent('<span class="popup">' + markerData["Sensor Source"] + ': ' + markerData.ID + '</span>'))
+      L.popup({closeButton: false, className: 'sensorInformationPopup'}).setContent('<span class="popup">' + markerData["Sensor Source"] + ': ' + markerData.ID + '</span>'));
+
+    // set the border of created marker to selected
+    d3.select(mark._icon).classed('sensor-selected', true);
+
+    mark.on('mouseover', function(e) {
+      this.openPopup();
+    });
+
+    mark.on('mouseout', function(e) {
+      this.closePopup();
+    });
 
   }
 }
@@ -1959,6 +1974,16 @@ function getData(strng){
 
 function populateGraph() {
 
+  // unclick the sensor type legend
+  if (currentlySelectedDataSource != 'none') {
+    d3.select('.clickedLegendElement').classed('clickedLegendElement', false)
+    // remove notPartOfGroup class
+    // remove colored-border-selected class
+    d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('notPartOfGroup', false);
+    d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('partOfGroup-border', false);
+  }
+
+
   if (d3.select(this._icon).classed('sensor-selected')) {
     // if dot already selected
     let clickedDotID = this.id
@@ -2008,6 +2033,14 @@ function clearData(changingTimeRange) {
   // reset the search box field
   document.getElementById('sensorDataSearch').value = '';
   document.getElementById('errorInformation').textContent = ''
+
+  // remove the dblclick markers
+  sensLayer.eachLayer(function(layer) {
+    if (layer.id.split('_')[0] === 'personalMarker') {
+      slcMap.removeLayer(layer);
+      sensLayer.removeLayer(layer);
+    }
+  });
 }
 
 
