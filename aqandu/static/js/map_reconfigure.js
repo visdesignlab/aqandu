@@ -85,9 +85,9 @@ function startTheWholePage() {
   // getAllSensorData()
 
   // there is new data every minute for a sensor in the db
-  setInterval('updateDots()', 60000);  // 60'000 = 60'000 miliseconds = 60 seconds = 1 min
-  setInterval('updateSensors()', 300000); // update every 5min
-  setInterval('updateContour()', 300000); // update every 5min
+  // setInterval('updateDots()', 60000);  // 60'000 = 60'000 miliseconds = 60 seconds = 1 min
+  // setInterval('updateSensors()', 300000); // update every 5min
+  // setInterval('updateContour()', 300000); // update every 5min
   // setInterval('updateSensors()', 60000); // update every 5min
 
 
