@@ -7,7 +7,7 @@
 
 
 // setting dates for timeline and for ajax calls
-const todayDate = new Date();
+const todayDate = new Date('Mon Jul 09 2018 21:50:59 GMT-0600');
 const today = todayDate.toISOString().substr(0, 19) + 'Z';
 const date = new Date();
 date.setDate(date.getDate() - 1);
