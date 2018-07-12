@@ -7,9 +7,9 @@
 
 
 // setting dates for timeline and for ajax calls
-const todayDate = new Date('Mon Jul 09 2018 21:50:59 GMT-0600');
+const todayDate = new Date('Mon Jul 09 2018 17:00:00 GMT-0600');
 const today = todayDate.toISOString().substr(0, 19) + 'Z';
-const date = new Date();
+const date = new Date('Mon Jul 09 2018 17:00:00 GMT-0600');
 date.setDate(date.getDate() - 1);
 let pastDate = date.toISOString().substr(0, 19) + 'Z';
 
@@ -73,6 +73,7 @@ function startTheWholePage() {
 
   // $(document).ready(init);
   // init()
+  $('body').LoadingOverlay("show");
   window.onresize = init();
 
   // theMap = setupMap(imageUrl);
@@ -206,6 +207,7 @@ function init() {
     });
 
     // need to do the same for the contours TODO
+    $('body').LoadingOverlay("show");
     getContourData();
 
   });
@@ -247,18 +249,48 @@ function getAggregation(timeRange) {
 }
 
 
-function getClosest(num, ar) {
-  var contourArray = ar;
-  contourArray.sort((a, b) => (new Date(a.time) > new Date(b.time)) ? 1 : ((new Date(b.time) > new Date(a.time)) ? -1 : 0))
-  if (num < new Date(contourArray[0].time)) {
-    // console.log('lowest');
+function getClosest(aDate, contourArray) {
+  // var contourArray = ar;
+  // contourArray.sort((a, b) => (new Date(a.time) > new Date(b.time)) ? 1 : ((new Date(b.time) > new Date(a.time)) ? -1 : 0))
+  // if (num < new Date(contourArray[0].time)) {
+  //   // console.log('lowest');
+  //   return [contourArray[0], contourArray[0]];
+  // } else if (num > new Date(contourArray[contourArray.length - 1].time)) {
+  //   // console.log('highest')
+  //   return [contourArray[contourArray.length - 1], contourArray[contourArray.length - 1]];
+  // } else {
+  //   // console.log('inbetween')
+  //   return contourArray.sort((a, b) => Math.abs(new Date(a.time) - new Date(num)) - Math.abs(new Date(b.time) - new Date(num))).slice(0, 2);
+  // }
+
+  // var current = new Date(contourArray[0].time);
+  // var currentIndex = 0;
+  // var currentElement = contourArray[0];
+  //
+  // contourArray.forEach(function(element, i) {
+  //   if (Math.abs(aDate - new Date(element.time)) < Math.abs(aDate - current)) {
+  //     current = new Date(element.time);
+  //     currentElement = element;
+  //     currentIndex = i;
+  //   }
+  // });
+
+  if (aDate < new Date(contourArray[0].time)) {
     return [contourArray[0], contourArray[0]];
-  } else if (num > new Date(contourArray[contourArray.length - 1].time)) {
-    // console.log('highest')
+  } else if (aDate > new Date(contourArray[contourArray.length - 1].time)) {
     return [contourArray[contourArray.length - 1], contourArray[contourArray.length - 1]];
   } else {
-    // console.log('inbetween')
-    return contourArray.sort((a, b) => Math.abs(new Date(a.time) - new Date(num)) - Math.abs(new Date(b.time) - new Date(num))).slice(0, 2);
+
+    // contourArray is sorted acending in time
+    var previousElement;
+    for (let element of contourArray) {
+    // contourArray.forEach(function(element, i) {
+      if (aDate < new Date(element.time)) {
+        return [previousElement, element];
+      }
+
+      previousElement = element;
+    }
   }
 }
 
@@ -300,12 +332,15 @@ function setUp() {
             .on("start.interrupt", function() { slider.interrupt(); })
             .on("start drag", function(d) {
 
+              console.log(d3.event.x)
               var currentDate = x.invert(d3.event.x);
               console.log(currentDate)
 
               // set the contour
               // theContours.sort((a, b) => Math.abs(new Date(a.time) - new Date(num)) - Math.abs(new Date(b.time) - new Date(num)))
-              var upperAndLowerBound = getClosest(currentDate, theContours.reverse());
+              // var upperAndLowerBound = getClosest(currentDate, theContours.reverse());
+              var upperAndLowerBound = getClosest(currentDate, theContours);
+              console.log(upperAndLowerBound);
 
               var roundedDate
               if ((new Date(currentDate) - new Date(upperAndLowerBound[0].time)) >= (new Date(upperAndLowerBound[1].time) - new Date(currentDate))) {
@@ -337,7 +372,7 @@ function setUp() {
               //
               // setDotValues(sensorValuesForGivenTime);
 
-
+              console.log(roundedDate)
               sliderHandle.attr('cx', x(new Date(roundedDate.time)));
 
               slider.select('#contourTime').attr("transform", "translate(" + (x(new Date(roundedDate.time)) - 50) + "," + 18 + ")")
@@ -365,6 +400,7 @@ function setUp() {
            .text(function(d) { return formatSliderDate(d); });
 
   slider.select("circle").remove();
+  slider.select("#contourTime").remove();
 
   slider.insert("text", ".track-overlay")
         .attr("id", "contourTime");
@@ -528,17 +564,17 @@ function setupMap() {
   // var mapSVG = d3.select("#SLC-map").select("svg.leaflet-zoom-animated");
   // var mapSVG_g = mapSVG.select("g");
 
-  getDataFromDB(lastContourURL).then(data => {
-
-    console.log(data)
-    // process contours data
-    setContour(slcMap, data);
-
-  }).catch(function(err){
-
-      alert("error, request failed!");
-      console.log("Error: ", err)
-  });
+  // getDataFromDB(lastContourURL).then(data => {
+  //
+  //   console.log(data)
+  //   // process contours data
+  //   setContour(slcMap, data);
+  //
+  // }).catch(function(err){
+  //
+  //     alert("error, request failed!");
+  //     console.log("Error: ", err)
+  // });
 
 
 
@@ -923,6 +959,9 @@ function setupMap() {
 
     var estimatesForLocationURL = generateURL(dbEndpoint, '/getEstimatesForLocation', {"location": {'lat': clickLocation['lat'], 'lng': clickLocation['lng']}, 'start': pastDate, 'end': today})
 
+    console.log(estimatesForLocationURL);
+
+
     getDataFromDB(estimatesForLocationURL).then(data => {
 
       console.log(data);
@@ -941,7 +980,7 @@ function setupMap() {
           id: markerID,
           time: new Date(d.time),
           pm25: d.pm25,
-          contour: d.contour
+          // contour: d.contour
         };
       }).filter((d) => {
         return d.pm25 === 0 || !!d.pm25; // forces NaN, null, undefined to be false, all other values to be true
@@ -1144,26 +1183,26 @@ function createMarker(markerData) {
 
   if (markerData.Latitude !== null && markerData.Longitude !== null) {
     let classList = 'dot';
-    let currentPM25 = markerData.pm25;
+    // let currentPM25 = markerData.pm25;
+    //
+    // // if (markerData.time != undefined) {
+    // let currentTime = new Date().getTime()
+    // let timeLastMeasurement = markerData.time;
+    // let minutesINBetween = (currentTime - timeLastMeasurement) / (1000 * 60);
+    // // } else {
+    // //   minutesINBetween = 1
+    // // }
 
-    // if (markerData.time != undefined) {
-      let currentTime = new Date().getTime()
-      let timeLastMeasurement = markerData.time;
-      let minutesINBetween = (currentTime - timeLastMeasurement) / (1000 * 60);
+    let theColor = 'noColorForDebugging'
+    // if (markerData['Sensor Source'] === 'airu') {
+    //   if (minutesINBetween < 5.0) {
+    //     theColor = getColor(currentPM25);
+    //   } else {
+    //     theColor = 'noColor';
+    //   }
     // } else {
-    //   minutesINBetween = 1
+    //   theColor = getColor(currentPM25);
     // }
-
-    let theColor
-    if (markerData['Sensor Source'] === 'airu') {
-      if (minutesINBetween < 5.0) {
-        theColor = getColor(currentPM25);
-      } else {
-        theColor = 'noColor';
-      }
-    } else {
-      theColor = getColor(currentPM25);
-    }
 
     // let theColor = getColor(markerData["pm25"]);
     // console.log(item["ID"] + ' ' + theColor + ' ' + item["pm25"])
@@ -1303,9 +1342,27 @@ function getContourData() {
     console.log('contour data')
     console.log(data)
     theContours = data
+
+    theContours.sort((a, b) => (new Date(a.time) > new Date(b.time)) ? 1 : ((new Date(b.time) > new Date(a.time)) ? -1 : 0))
+
     // theContours.sort((a, b) => Math.abs(new Date(a.time) - new Date(b.time)) - Math.abs(new Date(b.time) - new Date(a.time)))
     // process contours data
     // setContour(slcMap, data);
+
+    // getting the latest contour in the dataset and set is as the last contour
+    var currentDate = todayDate;
+    // var upperAndLowerBound = getClosest(currentDate, theContours.reverse());
+    var upperAndLowerBound = getClosest(currentDate, theContours);
+
+    var roundedDate
+    if ((new Date(currentDate) - new Date(upperAndLowerBound[0].time)) >= (new Date(upperAndLowerBound[1].time) - new Date(currentDate))) {
+      roundedDate = upperAndLowerBound[1]
+    } else {
+      roundedDate = upperAndLowerBound[0]
+    }
+
+    setContour(slcMap, roundedDate);
+    $('body').LoadingOverlay("hide");
 
   }).catch(function(err){
 

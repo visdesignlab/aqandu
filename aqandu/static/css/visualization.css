@@ -131,6 +131,9 @@ svg text {
 .dot.noColor {
   background-color: rgba(255, 255, 255, 0);
 }
+.dot.noColorForDebugging {
+  background-color: rgba(255, 255, 255, 0);
+}
 .dot.green.notPartOfGroup {
   /* background-color: rgba(0, 228, 0, 0.1); */
   background-color: rgb(166, 217, 106, 0.1);
@@ -156,6 +159,9 @@ svg text {
   background-color: rgb(166, 54, 3, 0.1);
 }
 .dot.noColor.notPartOfGroup {
+  background-color: rgba(255, 255, 255, 0);
+}
+.dot.noColorForDebugging.notPartOfGroup {
   background-color: rgba(255, 255, 255, 0);
 }
 
@@ -237,7 +243,8 @@ input:valid ~ span.validity:after {
 /* Popup */
 .sensorInformationPopup .leaflet-popup-content-wrapper {
   background-color: rgba(255, 255, 255, 0.8);
-  color: #000;
+  /* color: #000; */
+  color: #ff00ff;
   box-shadow: none;
 
   /* font-family: Frutiger;
