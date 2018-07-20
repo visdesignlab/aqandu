@@ -1337,7 +1337,9 @@ function getContourData() {
     // process contours data
     // setContour(slcMap, data);
 
-    theContours.sort((a, b) => (new Date(a.time) > new Date(b.time)) ? 1 : ((new Date(b.time) > new Date(a.time)) ? -1 : 0))
+    theContours.sort((a, b) => (new Date(a.time) > new Date(b.time)) ? 1 : ((new Date(b.time) > new Date(a.time)) ? -1 : 0));
+
+    $('body').LoadingOverlay("hide");
 
   }).catch(function(err){
 
