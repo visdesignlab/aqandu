@@ -73,6 +73,7 @@ function startTheWholePage() {
 
   // $(document).ready(init);
   // init()
+  $('body').LoadingOverlay("show");
   window.onresize = init();
 
   // theMap = setupMap(imageUrl);
@@ -206,6 +207,8 @@ function init() {
     });
 
     // need to do the same for the contours TODO
+    $('body').LoadingOverlay("show");
+
     getContourData();
 
   });
@@ -247,20 +250,42 @@ function getAggregation(timeRange) {
 }
 
 
-function getClosest(num, ar) {
-  var contourArray = ar;
-  contourArray.sort((a, b) => (new Date(a.time) > new Date(b.time)) ? 1 : ((new Date(b.time) > new Date(a.time)) ? -1 : 0))
-  if (num < new Date(contourArray[0].time)) {
-    // console.log('lowest');
+// function getClosest(num, ar) {
+//   var contourArray = ar;
+//   contourArray.sort((a, b) => (new Date(a.time) > new Date(b.time)) ? 1 : ((new Date(b.time) > new Date(a.time)) ? -1 : 0))
+//   if (num < new Date(contourArray[0].time)) {
+//     // console.log('lowest');
+//     return [contourArray[0], contourArray[0]];
+//   } else if (num > new Date(contourArray[contourArray.length - 1].time)) {
+//     // console.log('highest')
+//     return [contourArray[contourArray.length - 1], contourArray[contourArray.length - 1]];
+//   } else {
+//     // console.log('inbetween')
+//     return contourArray.sort((a, b) => Math.abs(new Date(a.time) - new Date(num)) - Math.abs(new Date(b.time) - new Date(num))).slice(0, 2);
+//   }
+// }
+
+function getClosest(aDate, contourArray) {
+
+  if (aDate < new Date(contourArray[0].time)) {
     return [contourArray[0], contourArray[0]];
-  } else if (num > new Date(contourArray[contourArray.length - 1].time)) {
-    // console.log('highest')
+  } else if (aDate > new Date(contourArray[contourArray.length - 1].time)) {
     return [contourArray[contourArray.length - 1], contourArray[contourArray.length - 1]];
   } else {
-    // console.log('inbetween')
-    return contourArray.sort((a, b) => Math.abs(new Date(a.time) - new Date(num)) - Math.abs(new Date(b.time) - new Date(num))).slice(0, 2);
+
+    // contourArray is sorted acending in time
+    var previousElement;
+    for (let element of contourArray) {
+    // contourArray.forEach(function(element, i) {
+      if (aDate < new Date(element.time)) {
+        return [previousElement, element];
+      }
+
+      previousElement = element;
+    }
   }
 }
+
 
 
 /**
@@ -300,12 +325,16 @@ function setUp() {
             .on("start.interrupt", function() { slider.interrupt(); })
             .on("start drag", function(d) {
 
+              console.log(d3.event.x)
               var currentDate = x.invert(d3.event.x);
               console.log(currentDate)
 
               // set the contour
               // theContours.sort((a, b) => Math.abs(new Date(a.time) - new Date(num)) - Math.abs(new Date(b.time) - new Date(num)))
-              var upperAndLowerBound = getClosest(currentDate, theContours.reverse());
+              // var upperAndLowerBound = getClosest(currentDate, theContours.reverse());
+              var upperAndLowerBound = getClosest(currentDate, theContours);
+              console.log(upperAndLowerBound);
+
 
               var roundedDate
               if ((new Date(currentDate) - new Date(upperAndLowerBound[0].time)) >= (new Date(upperAndLowerBound[1].time) - new Date(currentDate))) {
@@ -337,7 +366,7 @@ function setUp() {
               //
               // setDotValues(sensorValuesForGivenTime);
 
-
+              console.log(roundedDate)
               sliderHandle.attr('cx', x(new Date(roundedDate.time)));
 
               slider.select('#contourTime').attr("transform", "translate(" + (x(new Date(roundedDate.time)) - 50) + "," + 18 + ")")
@@ -365,6 +394,7 @@ function setUp() {
            .text(function(d) { return formatSliderDate(d); });
 
   slider.select("circle").remove();
+  slider.select("#contourTime").remove();
 
   slider.insert("text", ".track-overlay")
         .attr("id", "contourTime");
@@ -1306,6 +1336,8 @@ function getContourData() {
     // theContours.sort((a, b) => Math.abs(new Date(a.time) - new Date(b.time)) - Math.abs(new Date(b.time) - new Date(a.time)))
     // process contours data
     // setContour(slcMap, data);
+
+    theContours.sort((a, b) => (new Date(a.time) > new Date(b.time)) ? 1 : ((new Date(b.time) > new Date(a.time)) ? -1 : 0))
 
   }).catch(function(err){
 
