@@ -20,8 +20,13 @@ const y = d3.scaleLinear().domain([0.0, 150.0]);
 const slcMap = L.map('SLC-map', {
     // center: [40.7608, -111.8910],
     center: [40.748808, -111.8896],
-    zoom: 13
-  });;
+    zoom: 13,
+    contextmenu: true,
+    contextmenuItems: [{
+	    text: 'Create Marker',
+	    callback: createNewMarker
+    }]
+  });
 
 const sensLayer = L.layerGroup();
 
@@ -935,64 +940,64 @@ function setupMap() {
   // slcMap.zoomControl.setPosition('verticalcenterbottomright');
   slcMap.zoomControl.setPosition('verticalcentertopleft');
 
-  slcMap.on("dblclick", function(location) {
-
-    var clickLocation = location.latlng;
-    console.log(clickLocation);
-
-    // creating the ID for the marker
-    var markerID = latestGeneratedID + 1;
-    latestGeneratedID = markerID;
-    markerID = 'personalMarker_' + markerID;
-
-
-    // create Dot
-    var randomClickMarker = [{'ID': markerID, 'Sensor Source': 'sensorLayerRandomMarker', 'Latitude': String(clickLocation['lat']), 'Longitude': String(clickLocation['lng'])}]
-    sensorLayerRandomMarker(randomClickMarker)
-
-
-    var estimatesForLocationURL = generateURL(dbEndpoint, '/getEstimatesForLocation', {"location": {'lat': clickLocation['lat'], 'lng': clickLocation['lng']}, 'start': pastDate, 'end': today})
-
-    getDataFromDB(estimatesForLocationURL).then(data => {
-
-      console.log(data);
-      // adding the 4 selected corner points to do bilinear interpolation
-      // cornerMarkers = [data['leftBottomCorner'], data['leftTopCorner'], data['rightBottomCorner'], data['rightTopCorner']]
-      //
-      // corners = cornerMarkers.map(function(aMarker) {
-      //   return {'Latitude': String(aMarker['lat']), 'Longitude': String(aMarker['lng']), 'Sensor Source': 'airu', 'pm25': 150}
-      // })
-
-      // sensorLayerDebugging(corners)
-
-      // parse the incoming bilinerar interpolated data
-      var processedData = data.map((d) => {
-        return {
-          id: markerID,
-          time: new Date(d.time),
-          pm25: d.pm25,
-          contour: d.contour
-        };
-      }).filter((d) => {
-        return d.pm25 === 0 || !!d.pm25; // forces NaN, null, undefined to be false, all other values to be true
-      });
-
-      // var newLine = {id: id, sensorSource: sensorSource, sensorData: processedSensorData};
-      var newLine = {id: markerID, sensorSource: 'sensorLayerRandomMarker', sensorData: processedData};
-
-      // pushes data for this specific line to an array so that there can be multiple lines updated dynamically on Click
-      lineArray.push(newLine)
-
-      drawChart();
-
-      // return d
-
-    }).catch((err) => {
-      alert('error, request failed!');
-      console.log('Error: ', err)
-    });
-
-  });
+  // slcMap.on("dblclick", function(location) {
+  //
+  //   var clickLocation = location.latlng;
+  //   console.log(clickLocation);
+  //
+  //   // creating the ID for the marker
+  //   var markerID = latestGeneratedID + 1;
+  //   latestGeneratedID = markerID;
+  //   markerID = 'personalMarker_' + markerID;
+  //
+  //
+  //   // create Dot
+  //   var randomClickMarker = [{'ID': markerID, 'Sensor Source': 'sensorLayerRandomMarker', 'Latitude': String(clickLocation['lat']), 'Longitude': String(clickLocation['lng'])}]
+  //   sensorLayerRandomMarker(randomClickMarker)
+  //
+  //
+  //   var estimatesForLocationURL = generateURL(dbEndpoint, '/getEstimatesForLocation', {"location": {'lat': clickLocation['lat'], 'lng': clickLocation['lng']}, 'start': pastDate, 'end': today})
+  //
+  //   getDataFromDB(estimatesForLocationURL).then(data => {
+  //
+  //     console.log(data);
+  //     // adding the 4 selected corner points to do bilinear interpolation
+  //     // cornerMarkers = [data['leftBottomCorner'], data['leftTopCorner'], data['rightBottomCorner'], data['rightTopCorner']]
+  //     //
+  //     // corners = cornerMarkers.map(function(aMarker) {
+  //     //   return {'Latitude': String(aMarker['lat']), 'Longitude': String(aMarker['lng']), 'Sensor Source': 'airu', 'pm25': 150}
+  //     // })
+  //
+  //     // sensorLayerDebugging(corners)
+  //
+  //     // parse the incoming bilinerar interpolated data
+  //     var processedData = data.map((d) => {
+  //       return {
+  //         id: markerID,
+  //         time: new Date(d.time),
+  //         pm25: d.pm25,
+  //         contour: d.contour
+  //       };
+  //     }).filter((d) => {
+  //       return d.pm25 === 0 || !!d.pm25; // forces NaN, null, undefined to be false, all other values to be true
+  //     });
+  //
+  //     // var newLine = {id: id, sensorSource: sensorSource, sensorData: processedSensorData};
+  //     var newLine = {id: markerID, sensorSource: 'sensorLayerRandomMarker', sensorData: processedData};
+  //
+  //     // pushes data for this specific line to an array so that there can be multiple lines updated dynamically on Click
+  //     lineArray.push(newLine)
+  //
+  //     drawChart();
+  //
+  //     // return d
+  //
+  //   }).catch((err) => {
+  //     alert('error, request failed!');
+  //     console.log('Error: ', err)
+  //   });
+  //
+  // });
 
   return slcMap;
 }
@@ -2113,4 +2118,68 @@ function conversionPM(pm, sensorSource, sensorModel) {
   }
 
   return pmv;
+}
+
+
+function showCoordinates(e) {
+  alert(e.latlng);
+}
+
+
+function createNewMarker(location) {
+
+  var clickLocation = location.latlng;
+  console.log(clickLocation);
+
+  // creating the ID for the marker
+  var markerID = latestGeneratedID + 1;
+  latestGeneratedID = markerID;
+  markerID = 'personalMarker_' + markerID;
+
+
+  // create Dot
+  var randomClickMarker = [{'ID': markerID, 'Sensor Source': 'sensorLayerRandomMarker', 'Latitude': String(clickLocation['lat']), 'Longitude': String(clickLocation['lng'])}]
+  sensorLayerRandomMarker(randomClickMarker)
+
+
+  var estimatesForLocationURL = generateURL(dbEndpoint, '/getEstimatesForLocation', {"location": {'lat': clickLocation['lat'], 'lng': clickLocation['lng']}, 'start': pastDate, 'end': today})
+
+  getDataFromDB(estimatesForLocationURL).then(data => {
+
+    console.log(data);
+    // adding the 4 selected corner points to do bilinear interpolation
+    // cornerMarkers = [data['leftBottomCorner'], data['leftTopCorner'], data['rightBottomCorner'], data['rightTopCorner']]
+    //
+    // corners = cornerMarkers.map(function(aMarker) {
+    //   return {'Latitude': String(aMarker['lat']), 'Longitude': String(aMarker['lng']), 'Sensor Source': 'airu', 'pm25': 150}
+    // })
+
+    // sensorLayerDebugging(corners)
+
+    // parse the incoming bilinerar interpolated data
+    var processedData = data.map((d) => {
+      return {
+        id: markerID,
+        time: new Date(d.time),
+        pm25: d.pm25,
+        contour: d.contour
+      };
+    }).filter((d) => {
+      return d.pm25 === 0 || !!d.pm25; // forces NaN, null, undefined to be false, all other values to be true
+    });
+
+    // var newLine = {id: id, sensorSource: sensorSource, sensorData: processedSensorData};
+    var newLine = {id: markerID, sensorSource: 'sensorLayerRandomMarker', sensorData: processedData};
+
+    // pushes data for this specific line to an array so that there can be multiple lines updated dynamically on Click
+    lineArray.push(newLine)
+
+    drawChart();
+
+    // return d
+
+  }).catch((err) => {
+    alert('error, request failed!');
+    console.log('Error: ', err)
+  });
 }
