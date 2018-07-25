@@ -613,7 +613,7 @@ function setupMap() {
   slcMap.on('blur', () => { slcMap.scrollWheelZoom.disable(); });
 
   // disabling zooming when double clicking
-  slcMap.doubleClickZoom.disable();
+  // slcMap.doubleClickZoom.disable();
 
   // adding new placeholders for leaflet controls
   addControlPlaceholders(slcMap);
