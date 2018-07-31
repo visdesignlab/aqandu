@@ -27,9 +27,7 @@
 
         <link rel="stylesheet" type="text/css" href="static/css/material-kit.css" >
 
-        <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
-
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin=""/>
+        <!-- <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script> -->
 
         {% assets "css" %}
           <link href="{{ ASSET_URL }}" rel="stylesheet">
@@ -41,8 +39,6 @@
         <!-- <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css" /> -->
 
         <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans" />
-
-        <link rel="stylesheet" type="text/css" href="static/css/leaflet.contextmenu.min.css" />
 
         <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -72,7 +68,7 @@
                   <a class= "nav-link" href="{{ url_for('index') }}">Home</a><span class="sr-only">(current)</span>
                 </li>
                 <li class="nav-item {% block airu_sensor %}{% endblock %}">
-                  <a class= "nav-link" href="{{ url_for('airu_sensor') }}">FAQ: Map + AirU Sensor</a>
+                  <a class= "nav-link" href="{{ url_for('airu_sensor') }}">Learn More</a>
                 </li>
                 <li class="nav-item {% block request_sensor %}{% endblock %}">
                   <a class= "nav-link" href="{{ url_for('request_sensor') }}">Request a Sensor</a>
@@ -108,12 +104,12 @@
         <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
         <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script> -->
         <script type="text/javascript" src= "https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.1.1.min.js"></script>
+        <script type="text/javascript" src="static/js/all.min.js"></script>
         <!-- Include all compiled plugins (below), or include individual files as needed -->
         <script type="text/javascript" src="static/js/bootstrap.bundle.min.js"></script>
         <!-- <script type="text/javascript" src="static/js/moment.js"></script>
         <script type="text/javascript" src="static/js/moment-timezone-with-data.js"></script> -->
-        <script type="text/javascript" src="static/js/loadingoverlay.min.js"></script>
-        <script type="text/javascript" src="static/js/leaflet.contextmenu.min.js"></script>
+
 
         <!-- {% assets "js" %}
           <script type="text/javascript" src="{{ ASSET_URL }}"></script>

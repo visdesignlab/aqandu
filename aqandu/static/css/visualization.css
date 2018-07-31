@@ -262,11 +262,28 @@ input:valid ~ span.validity:after {
   display: none;
 }
 
-.closeButton {
+#closeLegendButton {
   position: absolute;
   top: 0px;
   right: 0px;
+}
 
+
+#closeTimelineControlButton {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+}
+
+
+#closeTimelineButton {
+  position: absolute;
+  top: 5px;
+  left: 10px;
+}
+
+
+.closeButton {
   background-color: #ffffff;
 
   width: 30px;
@@ -301,17 +318,11 @@ input:valid ~ span.validity:after {
   top: 28px;
   right: 10px;
 
-  width: 30px;
-  height: 30px;
-  line-height: 26px;
-  border: 2px solid rgba(0,0,0,0.4);
-  /* position: relative; */
-  background-color: #fff;
-  border-radius: 4px;
-
-  font-family: 'Open Sans', sans-serif;
-  font-weight: 400;
   font-size: 12px;
+}
+
+#openLegendButton:hover, #openTimelineButton:hover, #openTimelineControlButton:hover {
+  background-color: #f2f2f2;
 }
 
 
@@ -329,19 +340,6 @@ input:valid ~ span.validity:after {
   font-size: 1.5em
 }
 
-/* .aqu_icon:hover {
-  color: #fff;
-} */
-
-
-.reappearingButton {
-  width: 32px;
-  height: 32px;
-  border: 2px solid rgba(0,0,0,0.4);
-  position: relative;
-  background-color: #fff;
-  border-radius: 4px;
-}
 
 .reappearingButton:hover {
   background-color: #f2f2f2;
@@ -381,11 +379,11 @@ input:valid ~ span.validity:after {
   height: 37%;
 }
 
-@media only screen and (max-height: 900px) {
+/* @media only screen and (max-height: 800px) {
   #timeline {
     bottom: -37%;
   }
-}
+} */
 
 
 /* SLIDER */
@@ -488,8 +486,10 @@ input:valid ~ span.validity:after {
   /* text-decoration: underline #c00; */
 /* } */
 
-.clickedLegendElement {
+label.clickedLegendElement {
   text-decoration: underline #808080;
+  /* font-family: 'Open Sans Extra-Bold';
+  font-weight: 900; */
 }
 
 /* .txt {
@@ -813,4 +813,8 @@ input:valid ~ span.validity:after {
 
 .tooltip.show {
   opacity: 1;
+}
+
+.hide {
+  display: none;
 }

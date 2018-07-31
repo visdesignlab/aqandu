@@ -39,16 +39,40 @@
                         The dots itself are colored using a variation of the EPA classification color scheme (right upper part of the legend). The dot's color updates every 1 minute, showing the latest measured value by that sensor.
                       </p>
                       <p class='description'>
-                        Clicking on a dot (sensor) makes that sensor's data appear in the timeline visualization. Also the dot's border changes from white to balck to show that the sensor has been selected. Clicking on a selected sensor (sensor with black borders) removes the data from the timeline and the sensor border gets its white color back. You can click on multiple sensors to add them to the timeline visualization. The lines in the timeline all appear in grey. To know which line in the timeline belongs to which sensor, move the mouse cursor over the line and a text box with the sensor ID will appear over the sensor in the map visualization.
+                        Clicking on a dot (sensor) makes that sensor's data appear in the timeline visualization. Also the dot's border changes from white to black to show that the sensor has been selected. Clicking on a selected sensor (sensor with black borders) again removes the data from the timeline and the sensor border gets its white color back. You can click on multiple sensors to add them to the timeline visualization. The lines in the timeline all appear in grey. To know which line in the timeline belongs to which sensor, move the mouse cursor over the line and a text box with the sensor ID will appear over the sensor in the map visualization.
                       </p>
                       <p class='description'>
                         The default time range in the timeline visualization is the past 24 hours. This can be changed by selecting the appropriate radio button below the timeline. The options are the past 24 hours (default), the past 3 days, and the past week. The data used for the past 24 hours is the raw data as captured by the sensor which is corrected to our best estimate of actual PM2.5 concentrations (see <a href="#calibrationSection">Calibration</a>). Whereas for the past 3 day's and the past week's data we aggregate the raw data over one hour and then converte to our best estimate of PM2.5 concentrations (see <a href="#calibrationSection">Calibration</a>).
                         The button to the right of these radio buttons can be used to remove all the data in the timeline and start fresh.
                       </p>
-                      <p class='description'>
+                      <!-- <p class='description'>
                         One caveat to be noted is that to be able to compare AirU data and PurpleAir data in the same graph we applied calibration using the data from the Winter 2017 for both AirU and PurpleAir sensors. The PurpleAir sensor model 1003 is calibrated within the range of 0 to 90 µg/m<sup>3</sup>. The PurpleAir sensor model 5003 is calibrated within the range of 0 to 60 µg/m<sup>3</sup>. And finally the AirU sensors are calibrated within the range of 0 to 200 µg/m<sup>3</sup>.
-                      </p>
+                      </p> -->
                     <!-- </div> -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-5" id="ModelingSection">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <h2 class="title inTheCenter">Model</h3>
+
+                    <video controls width="620">
+                      <source src="http://air.eng.utah.edu/files/videos/july4th-7th_modeling_results_ios.mov" type="video/mov">
+                      <source src="http://air.eng.utah.edu/files/videos/july4th-7th_modeling_results.mp4" type="video/mp4">
+                      <source src="http://air.eng.utah.edu/files/videos/july4th-7th_modeling_results.webm" type="video/webm">
+
+                      <p>Sorry, your browser doesn't support embedded videos, but don't worry, you can <a href="http://air.eng.utah.edu/files/videos/july4th-7th_modeling_results.mp4">download it</a>
+                      and watch it with your favorite video player!</p>
+                    </video>
+
+                    <p class="description">
+                      <br />
+                      This video illustrates how our model estimates PM2.5 levels throughout the valley during the July 4th fireworks and the Dollar Ridge Fire. In particular, you can see how PM2.5 levels spike around 2:00pm on July 4th and remain elevated in lower portions of the valley until early morning July 5th. In general, we see lower levels of PM2.5 on the east bench, likely due to the fireworks restrictions in those areas. At 7:00pm on July 5th, we see PM levels increase on the east side of the valley as a result of the Dollar Ridge Fire, and these increased levels sweep across the valley until 10:00am on July 6th when the winds shifted direction and clean air moved into the valley.
+                    </p>
                 </div>
             </div>
         </div>
@@ -61,6 +85,8 @@
                     <h3 class="title inTheCenter">Calibration</h3>
 
                     <p class="description">
+                      One caveat to be noted is that to be able to compare AirU data and PurpleAir data in the same graph we applied calibration using the data from the Winter 2017 for both AirU and PurpleAir sensors. The PurpleAir sensor model 1003 is calibrated within the range of 0 to 90 µg/m<sup>3</sup>. The PurpleAir sensor model 5003 is calibrated within the range of 0 to 60 µg/m<sup>3</sup>. And finally the AirU sensors are calibrated within the range of 0 to 200 µg/m<sup>3</sup>.<br />
+                      <br />
                       The DAQ and MesoWest monitors are presented without correction, and the PurpleAir and our own AirU sensor network measurements are corrected to provide our best estimate of actual PM2.5 concentrations based on co-location with the division of air quality measurements or laboratory calibrations (see table below). We co-located four PurpleAir network sensors with the Utah Division of Air Quality’s federal reference measurements of PM2.5 concentrations during the winter of 2016 and 2017. From this data, we developed correction factors for the PurpleAir sensors.  The AirU sensors were calibrated in house with ammonium nitrate and alumina oxide. If you examine a filter collected during a winter-time inversion, you would find that ammonium nitrate contributes the majority of the PM mass on that filter. This laboratory calibration provided the correction factor for the AirU sensors.  Thanks to the Division of Air Quality, PurpleAir, and the graduate student who calibrated all of the PM sensors in the AirU sensor network. You can see the corrections <a href="#correctionsSection">below</a>.
                     </p>
                 </div>

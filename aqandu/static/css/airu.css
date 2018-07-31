@@ -246,3 +246,7 @@ h2.title.boxed {
 .team .team-player img {
   max-width: 170px;
 }
+video {
+  display: block;
+  margin: 0 auto;
+}

@@ -15,6 +15,10 @@
   <!-- <script src="http://maps.stamen.com/js/tile.stamen.js"></script> -->
   <script src="https://stamen-maps.a.ssl.fastly.net/js/tile.stamen.js"></script>
 
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin=""/>
+
+  <link rel="stylesheet" type="text/css" href="static/css/leaflet.contextmenu.min.css" />
+
 {% endblock %}
 {% block body %}
 {% block index %}active{% endblock %}
@@ -24,6 +28,8 @@
       </div>
 
       <div id="timeline">
+          <div id="closeTimelineButton" class="closeButton"><a href="#">X</a></div>
+          <!-- <div id="openTimeliner"><i class='aqu_icon fas fa-list fa-2x'></i></div> -->
           <svg width="100%">
               <g id="slider"></g>
               <g id="graph">
@@ -64,7 +70,7 @@
             </div>
 
             <!-- <div id="controlsForTimeline" class="closeButton"><i class="aqu_icon_close far fa-window-close fa-2x"></i></div> -->
-            <div id="controlsForTimeline" class="closeButton"><a href="#">X</a></div>
+            <div id="closeTimelineControlButton" class="closeButton"><a href="#">X</a></div>
 
 
 
@@ -88,7 +94,7 @@
             </div>
 
           </div>
-          <div id="openTimelineControlButton"><i class='aqu_icon fas fa-list fa-2x'></i></div>
+          <div id="openTimelineControlButton" class='closeButton'><i class='aqu_icon fas fa-list fa-2x'></i></div>
       </div>
       <div class="tooltip hidden">
         <p class="tooltipText">These are the available PM2.5 data sources.</p>
@@ -100,4 +106,6 @@
 {% block scriptFooter %}
   <script src="static/js/db_data.js"></script>
   <script src="static/js/map_reconfigure.js"></script>
+  <script type="text/javascript" src="static/js/loadingoverlay.min.js"></script>
+  <script type="text/javascript" src="static/js/leaflet.contextmenu.min.js"></script>
 {% endblock %}

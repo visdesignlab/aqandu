@@ -17,14 +17,16 @@ let pastDate = date.toISOString().substr(0, 19) + 'Z';
 let x = d3.scaleTime().domain([new Date(pastDate), new Date(today)]);
 const y = d3.scaleLinear().domain([0.0, 150.0]);
 
+let showSensors = true;
+
 const slcMap = L.map('SLC-map', {
     // center: [40.7608, -111.8910],
     center: [40.748808, -111.8896],
     zoom: 13,
     contextmenu: true,
     contextmenuItems: [{
-	    text: 'Create Marker',
-	    callback: createNewMarker
+      text: 'Create Marker',
+      callback: createNewMarker
     }]
   });
 
@@ -39,6 +41,7 @@ const margin = {
   left: 50,
 };
 
+// holds the timeseries lines in the timeline graph
 let lineArray = [];
 
 let theContours = [];
@@ -78,24 +81,17 @@ function startTheWholePage() {
 
   // $(document).ready(init);
   // init()
-  $('body').LoadingOverlay("show");
-  window.onresize = init();
+  setUpTimeline();
+  // don't use setUpTimeline() because it's only the reference to a function that is needed
+  window.onresize = setUpTimeline;
 
   // theMap = setupMap(imageUrl);
   theMap = setupMap();
 
-  drawSensorOnMap();
+  sensLayer.addTo(theMap);
 
-  getContourData();
-  // get all sensor data for interactive brushing
-  // getAllSensorData()
-
-  // there is new data every minute for a sensor in the db
-  setInterval('updateDots()', 60000);  // 60'000 = 60'000 miliseconds = 60 seconds = 1 min
-  setInterval('updateSensors()', 300000); // update every 5min
-  setInterval('updateContour()', 300000); // update every 5min
-  // setInterval('updateSensors()', 60000); // update every 5min
-
+  // shows either the sensors or the contours
+  showMapDataVis();
 
   // TODO can this layer stuff be made simpler??
   // TO ADD THE LAYER ICON BACK uncomment the following lines and the line L.control.layers(null, overlayMaps).addTo(theMap);
@@ -103,50 +99,7 @@ function startTheWholePage() {
   //   "SensLayer": sensLayer
   // };
 
-  sensLayer.addTo(theMap);
-  // L.control.layers(null, overlayMaps).addTo(theMap);
 
-  // adding help buttons
-  // $('.legendTitle').append('<span class="helpIcon"></span>')
-  // $('.helpIcon').append('<i class="moreInfo far fa-question-circle"></i>')
-  // $('.helpIcon').on('click', d => {
-  // // $('.moreInfo').on('mouseover', d => {
-  //
-  //   var legendTitlePosition_x;
-  //   var legendTitlePosition_y;
-  //   if (d.currentTarget.parentElement.id === 'PM25level') {
-  //     legendTitlePosition_x = $('#PM25level')[0].getBoundingClientRect().left;
-  //     legendTitlePosition_y = $('#PM25level')[0].getBoundingClientRect().top;
-  //
-  //   } else if (d.currentTarget.parentElement.id === 'datasource') {
-  //     legendTitlePosition_x = $('#datasource')[0].getBoundingClientRect().left;
-  //     legendTitlePosition_y = $('#datasource')[0].getBoundingClientRect().top;
-  //
-  //   } else {
-  //     console.log("unknown legend title")
-  //   }
-  //
-  //
-  //   // var mainOffset_x = $('.legendTitle')[0].getBoundingClientRect().left
-  //   // var mainOffset_y = $('.legendTitle')[0].getBoundingClientRect().top
-  //
-  //   // var x = $(d3div.node()).offset().left;
-  //   // var y = $(d3div.node()).offset().top;
-  //
-  //   $('.tooltip').removeClass('hidden');
-  //   $('.tooltip').addClass('show');
-  //   $('.tooltip').addClass('rightTriangle');
-  //
-  //   var tooltipHeight = $('.tooltip').height();
-  //   var tooltipWidth = $('.tooltip').width();
-  //   // console.log(tooltipHeight);
-  //
-  //   d3.select('.tooltip')
-  //     // .style("left", (x - mainOffset_x) + "px")
-  //     // .style("top", (y - mainOffset_y - tooltipHeight - 6 - 6 - 6 - 3) + "px")
-  //     .style("left", (legendTitlePosition_x - tooltipWidth - 20) + "px")
-  //     .style("top", (legendTitlePosition_y - 15) + "px")
-  // })
 
   // preventing click on timeline to generate map event (such as creating dot for getting AQ)
   var timelineDiv = L.DomUtil.get('timeline');
@@ -157,7 +110,7 @@ function startTheWholePage() {
   L.DomEvent.disableClickPropagation(legendDiv);
   L.DomEvent.on(legendDiv, 'mousewheel', L.DomEvent.stopPropagation);
 
-  var reappearingButtonDiv = L.DomUtil.get('legend_reappearingButton');
+  var reappearingButtonDiv = L.DomUtil.get('openLegendButton');
   L.DomEvent.disableClickPropagation(reappearingButtonDiv);
   L.DomEvent.on(reappearingButtonDiv, 'mousewheel', L.DomEvent.stopPropagation);
 
@@ -177,71 +130,59 @@ function startTheWholePage() {
   // $('#timeline').hide();
   // $('nav').hide();
   // $('.legend').hide();
-
 };
 
 
-
-function init() {
-
-  // sets the from date for the timeline when the radio button is changed
-  $('#timelineControls input[type=radio]').on('change', function() {
-    whichTimeRangeToShow = parseInt($('[name="timeRange"]:checked').val());
-
-    let newDate = new Date(today);  // use "today" as the base date
-    newDate.setDate(newDate.getDate() - whichTimeRangeToShow);
-    pastDate = newDate.toISOString().substr(0, 19) + 'Z';
-
-    // refresh x
-    x = d3.scaleTime().domain([new Date(pastDate), new Date(today)]);
-    setUp();
+// function init() {
+//
+//
+//
+//   setUpTimeline();
+// }
 
 
-    // which IDs are there
-    let lineData = [];
-    lineArray.forEach(function(aLine) {
-      let theAggregation = getAggregation(whichTimeRangeToShow);
+function showMapDataVis() {
 
-      lineData.push({id: aLine.id, sensorSource: aLine.sensorSource, aggregation: theAggregation})
-    });
+  if (showSensors) {
+    // showSensors is true show only sensor, not the contours
 
-    clearData(true);
+    // get and set the last sensor data
+    drawSensorOnMap();
 
-    lineData.forEach(function(aLine) {
-      reGetGraphData(aLine.id, aLine.sensorSource, aLine.aggregation);
-    });
+    hideSlider();
 
-    // need to do the same for the contours TODO
-    $('body').LoadingOverlay("show");
+    // there is new data every minute for a sensor in the db
+    setInterval('updateDots()', 60000);  // 60'000 = 60'000 miliseconds = 60 seconds = 1 min
+    setInterval('updateSensors()', 300000); // update every 5min
+
+  } else {
+    // showSensors is false show only contours, not the sensors
 
     getContourData();
 
-  });
+    // get and set the last contour
+    getDataFromDB(lastContourURL).then(data => {
 
-  // add the submit event
-  $('#sensorDataSearchForm').on('submit', function(e) {
-      e.preventDefault();  //prevent form from submitting
-      document.getElementById('errorInformation').textContent = ''
-      let data = $("#sensorDataSearchForm :input").serializeArray();
-      console.log(data[0].value);
+      console.log(data)
+      setContour(slcMap, data);
 
-      let anAggregation = getAggregation(whichTimeRangeToShow);
-      reGetGraphData(data[0].value, 'airu', anAggregation);
+    }).catch(function(err){
 
-      // if the sensor is visible on the map, mark it as selected
-      sensLayer.eachLayer(function(layer) {
-        if (layer.id === data[0].value) {
-          d3.select(layer._icon).classed('sensor-selected', true)
-        }
-      });
-  });
+      alert("error, request failed!");
+      console.log("Error: ", err)
 
-  setUp();
-  // TODO: call the render function(s)
-  //  L.imageOverlay('overlay1.png', [[40.795925, -111.998256], [40.693031, -111.827190]], {
-  // 		opacity: 0.5,
-  // 		interactive: true,
-  // 	}).addTo(map);
+    });
+
+    showSlider();
+
+    // get all sensor data for interactive brushing
+    // getAllSensorData()
+
+    setInterval('updateContour()', 300000); // update every 5min
+
+
+  }
+
 }
 
 
@@ -292,16 +233,76 @@ function getClosest(aDate, contourArray) {
 }
 
 
-
 /**
- * [setUp description]
+ * setting up the timeline view
  */
-function setUp() {
+function setUpTimeline() {
+
+  // TIMELINE UI
+
+  // sets the from date for the timeline when the radio button is changed
+  $('#timelineControls input[type=radio]').on('change', function() {
+    whichTimeRangeToShow = parseInt($('[name="timeRange"]:checked').val());
+
+    let newDate = new Date(today);  // use "today" as the base date
+    newDate.setDate(newDate.getDate() - whichTimeRangeToShow);
+    pastDate = newDate.toISOString().substr(0, 19) + 'Z';
+
+    // refresh x
+    x = d3.scaleTime().domain([new Date(pastDate), new Date(today)]);
+    setUpTimeline();  // TODO is there a better way than this circular calling
+
+
+    // which IDs are there
+    let lineData = [];
+    lineArray.forEach(function(aLine) {
+      let theAggregation = getAggregation(whichTimeRangeToShow);
+
+      lineData.push({id: aLine.id, sensorSource: aLine.sensorSource, aggregation: theAggregation})
+    });
+
+    clearData(true);
+
+    lineData.forEach(function(aLine) {
+      reGetGraphData(aLine.id, aLine.sensorSource, aLine.aggregation);
+    });
+
+
+    if (!showSensors) {
+      // $('body').LoadingOverlay("show");
+      getContourData();
+    } else {
+      // need to do the same for the sensors TODO
+      console.log('nothing there yet')
+    }
+
+  });
+
+  // add the submit event
+  $('#sensorDataSearchForm').on('submit', function(e) {
+      e.preventDefault();  //prevent form from submitting
+      document.getElementById('errorInformation').textContent = ''
+      let data = $("#sensorDataSearchForm :input").serializeArray();
+      console.log(data[0].value);
+
+      let anAggregation = getAggregation(whichTimeRangeToShow);
+      reGetGraphData(data[0].value, 'airu', anAggregation);
+
+      // if the sensor is visible on the map, mark it as selected
+      sensLayer.eachLayer(function(layer) {
+        if (layer.id === data[0].value) {
+          d3.select(layer._icon).classed('sensor-selected', true)
+        }
+      });
+  });
+
+  // TIMELINE
 
   var timelineDIV = d3.select("#timeline");
   var bounds = timelineDIV.node().getBoundingClientRect();
   var svgWidth = bounds.width;
-  var svgHeight = 340;
+  // var svgHeight = 340;
+  var svgHeight = bounds.height;
   var width = svgWidth - margin.left - margin.right;    // right: 50, left: 50,
   var height = svgHeight - margin.top - margin.bottom - 18;  // top: 10,   bottom: 40,
   var svg = timelineDIV.select("svg") // sets size of svgContainer
@@ -409,6 +410,13 @@ function setUp() {
                            .attr("r", 9);
 
   sliderHandle.attr('cx', x(todayDate));
+
+  if (showSensors) {
+    hideSlider();
+  } else {
+    showSlider();
+  }
+
 
 
   // adding the graph
@@ -523,16 +531,10 @@ function addControlPlaceholders(map) {
 
 
 /**
- * [setupMap description]
+ * setting up the leaflet map view and the UI elements for the map
  * @return {[type]} [description]
  */
 function setupMap() {
-  // slcMap = L.map('SLC-map', {
-  //   // center: [40.7608, -111.8910],
-  //   center: [40.748808, -111.8896],
-  //   zoom: 13
-  // });
-
 
   //beginning of Peter's code (how to use StamenTileLayer)
   var bottomLayer = new L.StamenTileLayer("toner");
@@ -557,55 +559,12 @@ function setupMap() {
   //    interactive: true,
   //  }).addTo(slcMap);
 
-  // ******** start contour stuff ********
+
   L.svg().addTo(slcMap);
+
 
   // var mapSVG = d3.select("#SLC-map").select("svg.leaflet-zoom-animated");
   // var mapSVG_g = mapSVG.select("g");
-
-  getDataFromDB(lastContourURL).then(data => {
-
-    console.log(data)
-    // process contours data
-    setContour(slcMap, data);
-
-  }).catch(function(err){
-
-      alert("error, request failed!");
-      console.log("Error: ", err)
-  });
-
-
-
-  // var contoursURL = generateURL(dbEndpoint, '/contours', {'start': pastDate, 'end': today})
-  //
-  // getDataFromDB(contoursURL).then(data => {
-  //
-  //   console.log(contoursURL)
-  //
-  //   console.log('contour data')
-  //   console.log(data)
-  //   theContours = data
-  //   // theContours.sort((a, b) => Math.abs(new Date(a.time) - new Date(b.time)) - Math.abs(new Date(b.time) - new Date(a.time)))
-  //   // process contours data
-  //   // setContour(slcMap, data);
-  //
-  // }).catch(function(err){
-  //
-  //     alert("error, request failed!");
-  //     console.log("Error: ", err)
-  // });
-  // ******** start contour stuff ********
-
-
-  // // load a tile layer
-  // L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic2tpdHJlZSIsImEiOiJjajUyb2l0YzQwaHJwMnFwMTNhdGwxMGx1In0.V5OuKXRdmwjq4Lk3o8me1A', {
-  // // L.tileLayer('https://api.mapbox.com/styles/v1/oscarinslc/cjdy1fjlq1n9p2spe1f1dwvjp/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoib3NjYXJpbnNsYyIsImEiOiJjajZ3bG5kbnUxN2h3Mnd1aDdlOTJ6ZnUzIn0.fLYowxdcPCmZSLt51mG8tw', {
-  //
-  //   maxZoom: 18,
-  //   id: 'mapbox.streets',
-  //   accessToken: 'pk.eyJ1Ijoic2tpdHJlZSIsImEiOiJjajUydDkwZjUwaHp1MzJxZHhkYnl3eTd4In0.TdQB-1U_ID-37stKON_osw'
-  // }).addTo(slcMap);
 
   // disabling zooming when scrolling down the page (https://gis.stackexchange.com/questions/111887/leaflet-mouse-wheel-zoom-only-after-click-on-map)
   slcMap.scrollWheelZoom.disable();
@@ -619,12 +578,13 @@ function setupMap() {
   addControlPlaceholders(slcMap);
 
 
+  // legend reappearing button
   var reappearControlContainer = L.control({position: 'verticalcentertopright'});
   reappearControlContainer.onAdd = function () {
 
     var reappearingButton = document.createElement('div');
     reappearingButton.setAttribute('class', 'closeButton');
-    reappearingButton.setAttribute('id', 'legend_reappearingButton');
+    reappearingButton.setAttribute('id', 'openLegendButton');
 
     var i_reappearingButton = document.createElement('i');
     i_reappearingButton.setAttribute('class', 'aqu_icon fas fa-list fa-2x')
@@ -635,7 +595,27 @@ function setupMap() {
 
   reappearControlContainer.addTo(slcMap);
 
-  $('#legend_reappearingButton').hide();
+  $('#openLegendButton').hide();
+
+
+  // timeline reappearing button
+  var reappearTimelineControlContainer = L.control({position: 'verticalcenterbottomleft'});
+  reappearTimelineControlContainer.onAdd = function () {
+
+    var reappearingTimelineButton = document.createElement('div');
+    reappearingTimelineButton.setAttribute('class', 'closeButton');
+    reappearingTimelineButton.setAttribute('id', 'openTimelineButton');
+
+    var i_reappearingTimelineButton = document.createElement('i');
+    i_reappearingTimelineButton.setAttribute('class', 'aqu_icon fas fa-list fa-2x')
+    reappearingTimelineButton.appendChild(i_reappearingTimelineButton);
+
+    return reappearingTimelineButton
+  }
+
+  reappearTimelineControlContainer.addTo(slcMap);
+
+  $('#openTimelineButton').hide();
 
 
 
@@ -656,11 +636,9 @@ function setupMap() {
     // close button
     var closeButtonContainer = document.createElement('div');
     closeButtonContainer.setAttribute('class', 'closeButton');
+    closeButtonContainer.setAttribute('id', 'closeLegendButton');
     legendContainer.appendChild(closeButtonContainer);
 
-    // var closeButton_i = document.createElement('i');
-    // closeButton_i.setAttribute('class', 'aqu_icon_close far fa-window-close fa-2x');
-    // closeButtonContainer.appendChild(closeButton_i);
     var closeButton_a = document.createElement('a');
     closeButton_a.setAttribute('class', 'closeButton_a');
     closeButton_a.setAttribute('href', "#");
@@ -717,25 +695,6 @@ function setupMap() {
     lastElement.appendChild(lastSpan);
 
 
-
-
-
-
-
-    // colorLabels.push("<span id='PM25level' class='legendTitle'>PM2.5 levels in µg/m<sup>3</sup>:&nbsp;&nbsp;</span>");
-    //
-    // for (var i = 0; i < grades.length; i++) {
-    //   from = grades[i];
-    //   to = grades[i + 1];
-    //
-    //   colorLabels.push(
-    //     '<label><i class="' + getColor(from + 1) + '"></i> ' +
-    //     // from + (to ? ' &ndash; ' + to + ' µg/m<sup>3</sup> ' : ' µg/m<sup>3</sup> +'));
-    //     (to ? from + ' &ndash; ' + to + ' µg/m<sup>3</sup></label>' : 'above ' + from + '</label>'));
-    // }
-    //
-    // colorLegend.innerHTML = colorLabels.join('<br>');
-
     var hr = L.DomUtil.create('hr', 'theHR');
     legendContainer.appendChild(hr);
 
@@ -749,32 +708,6 @@ function setupMap() {
          .attr('class', 'legendTitle')
          .html('Data sources:&nbsp;&nbsp;');
 
-
-    // titleDataSource.on('mouseover', d => {
-    // // $('.moreInfo').on('mouseover', d => {
-    //   var mainOffset_x = $('.legendTitle')[0].getBoundingClientRect().left
-    //   var mainOffset_y = $('.legendTitle')[0].getBoundingClientRect().top
-    //
-    //   // var x = $(d3div.node()).offset().left;
-    //   // var y = $(d3div.node()).offset().top;
-    //
-    //   $('.tooltip').removeClass('hidden')
-    //   $('.tooltip').addClass('show')
-    //   var tooltipHeight = $('.tooltip').height();
-    //   var tooltipWidth = $('.tooltip').width();
-    //   // console.log(tooltipHeight);
-    //
-    //   d3.select('.tooltip')
-    //     // .style("left", (x - mainOffset_x) + "px")
-    //     // .style("top", (y - mainOffset_y - tooltipHeight - 6 - 6 - 6 - 3) + "px")
-    //     .style("left", (mainOffset_x - tooltipWidth) + "px")
-    //     .style("top", (mainOffset_y + tooltipHeight) + "px")
-    // })
-
-    // titleDataSource.on('mouseout', d => {
-    //   $('.tooltip').removeClass('show')
-    //   $('.tooltip').addClass('hidden')
-    // });
 
     var dataLabel = ["airu", "PurpleAir", "Mesowest", "DAQ"];
     var labels = d3div.selectAll('label').data(dataLabel);
@@ -835,21 +768,21 @@ function setupMap() {
   legendControl.addTo(slcMap);
 
 
-  $('#legend .closeButton').on("click", function() {
+  $('#closeLegendButton').on("click", function() {
     console.log('hiding legend');
     $('.legend').hide();
-    $('#legend_reappearingButton').show();
+    $('#openLegendButton').show();
   });
 
-  $('#legend_reappearingButton').on("click", function() {
+  $('#openLegendButton').on("click", function() {
     console.log('showing color legend');
     $('.legend').show();
-    $('#legend_reappearingButton').hide();
+    $('#openLegendButton').hide();
   });
 
 
-  $('#controlsForTimeline.closeButton').on("click", function() {
-    console.log('hiding controls');
+  $('#closeTimelineControlButton').on("click", function() {
+    console.log('hiding timeline controls');
     $('#timelineControls').hide();
     $('#openTimelineControlButton').show();
   });
@@ -861,143 +794,22 @@ function setupMap() {
   })
 
 
-  // // You can also put other controls in the same placeholder.
-  // L.control.scale({position: 'verticalcenterright'}).addTo(map);
+  $('#closeTimelineButton').on("click", function() {
+    console.log('hiding timeline');
+    // $('#timelineControls').hide();
+    $('#timeline').hide();
+    $('#openTimelineButton').show();
+  });
 
-
-  // const legend = L.control({position: 'verticalcenterright'});
-  //
-  // legend.onAdd = function () {
-  //   this._div = L.DomUtil.create('div', 'legend');
-  //   this.update(this._div);
-  //   return this._div;
-  // };
-
-  // legend.update = function (thediv) {
-  //   // TODO: draw the legend
-  //   var d3div = d3.select(thediv);
-  //   var titleDataSource = d3div.append('span')
-  //        .attr("class", "legendTitle")
-  //        .text('Data sources:');
-  //
-  //
-  //
-  //   var dataLabel = ["airu", "PurpleAir", "Mesowest", "DAQ"];
-  //   var labels = d3div.selectAll('label').data(dataLabel);
-  //   labels.exit().remove();
-  //   var labelsEnter = labels.enter()
-  //                           .append('label')
-  //                           .attr("class", "sensorType");
-  //   labels = labels.merge(labelsEnter);
-  //   labels.text(d => d);
-  //
-  //   labels.on('click', d => {
-  //     if (currentlySelectedDataSource != 'none') {
-  //       // element in sensor type legend has been clicked (was already selected) or another element has been selected
-  //
-  //       d3.select('.clickedLegendElement').classed('clickedLegendElement', false)
-  //       if (currentlySelectedDataSource === d) {
-  //         // remove notPartOfGroup class
-  //         // remove colored-border-selected class
-  //         d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('notPartOfGroup', false);
-  //         d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('partOfGroup-border', false);
-  //
-  //         currentlySelectedDataSource = 'none'
-  //       } else {
-  //         // moved from one element to another wiuthout first unchecking it
-  //
-  //         d3.select(d3.event.currentTarget).classed('clickedLegendElement', true)
-  //
-  //         d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('notPartOfGroup', true);
-  //         d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('partOfGroup-border', false);
-  //         d3.select('#SLC-map').selectAll('.' + d + ':not(noColor)').classed('notPartOfGroup', false);
-  //         d3.select('#SLC-map').selectAll('.' + d + ':not(noColor)').classed('partOfGroup-border', true);
-  //
-  //         currentlySelectedDataSource = d
-  //       }
-  //
-  //     } else {
-  //       // add the notPartOfGroup class to all dots, then remove it for the ones that are actually notPartOfGroup
-  //       // remove partOfGroup-border for all dots and add it only for the selected ones
-  //
-  //       d3.select(d3.event.currentTarget).classed('clickedLegendElement', true)
-  //
-  //       d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('notPartOfGroup', true);
-  //       d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('partOfGroup-border', false);
-  //       d3.select('#SLC-map').selectAll('.' + d + ':not(noColor)').classed('notPartOfGroup', false);
-  //       d3.select('#SLC-map').selectAll('.' + d + ':not(noColor)').classed('partOfGroup-border', true);
-  //
-  //       currentlySelectedDataSource = d;
-  //     }
-  //   });
-    //
-    // return thediv;
-  // }
-  //
-  // legend.addTo(slcMap);
+  $('#openTimelineButton').on("click", function() {
+    console.log('showing timeline');
+    $('#timeline').show();
+    $('#openTimelineButton').hide();
+  });
 
   // Change the position of the Zoom Control to a newly created placeholder.
   // slcMap.zoomControl.setPosition('verticalcenterbottomright');
   slcMap.zoomControl.setPosition('verticalcentertopleft');
-
-  // slcMap.on("dblclick", function(location) {
-  //
-  //   var clickLocation = location.latlng;
-  //   console.log(clickLocation);
-  //
-  //   // creating the ID for the marker
-  //   var markerID = latestGeneratedID + 1;
-  //   latestGeneratedID = markerID;
-  //   markerID = 'personalMarker_' + markerID;
-  //
-  //
-  //   // create Dot
-  //   var randomClickMarker = [{'ID': markerID, 'Sensor Source': 'sensorLayerRandomMarker', 'Latitude': String(clickLocation['lat']), 'Longitude': String(clickLocation['lng'])}]
-  //   sensorLayerRandomMarker(randomClickMarker)
-  //
-  //
-  //   var estimatesForLocationURL = generateURL(dbEndpoint, '/getEstimatesForLocation', {"location": {'lat': clickLocation['lat'], 'lng': clickLocation['lng']}, 'start': pastDate, 'end': today})
-  //
-  //   getDataFromDB(estimatesForLocationURL).then(data => {
-  //
-  //     console.log(data);
-  //     // adding the 4 selected corner points to do bilinear interpolation
-  //     // cornerMarkers = [data['leftBottomCorner'], data['leftTopCorner'], data['rightBottomCorner'], data['rightTopCorner']]
-  //     //
-  //     // corners = cornerMarkers.map(function(aMarker) {
-  //     //   return {'Latitude': String(aMarker['lat']), 'Longitude': String(aMarker['lng']), 'Sensor Source': 'airu', 'pm25': 150}
-  //     // })
-  //
-  //     // sensorLayerDebugging(corners)
-  //
-  //     // parse the incoming bilinerar interpolated data
-  //     var processedData = data.map((d) => {
-  //       return {
-  //         id: markerID,
-  //         time: new Date(d.time),
-  //         pm25: d.pm25,
-  //         contour: d.contour
-  //       };
-  //     }).filter((d) => {
-  //       return d.pm25 === 0 || !!d.pm25; // forces NaN, null, undefined to be false, all other values to be true
-  //     });
-  //
-  //     // var newLine = {id: id, sensorSource: sensorSource, sensorData: processedSensorData};
-  //     var newLine = {id: markerID, sensorSource: 'sensorLayerRandomMarker', sensorData: processedData};
-  //
-  //     // pushes data for this specific line to an array so that there can be multiple lines updated dynamically on Click
-  //     lineArray.push(newLine)
-  //
-  //     drawChart();
-  //
-  //     // return d
-  //
-  //   }).catch((err) => {
-  //     alert('error, request failed!');
-  //     console.log('Error: ', err)
-  //   });
-  //
-  // });
 
   return slcMap;
 }
@@ -1107,6 +919,9 @@ function setContour(theMap, theContourData) {
  * @return {[type]} [description]
  */
 function drawSensorOnMap() {
+
+  $('#SLC-map').LoadingOverlay("show");
+
   getDataFromDB(liveSensorURL_all).then((data) => {
 
     var numberOfPurpleAir = data.filter(sensor => sensor['Sensor Source'] === 'Purple Air').length;
@@ -1138,11 +953,14 @@ function drawSensorOnMap() {
 // removed this call to get all sensor Data TODO
     // getAllSensorData();
 
+    $('#SLC-map').LoadingOverlay("hide");
 
   }).catch((err) => {
       alert('error, request failed!');
       console.log('Error: ', err)
   });
+
+
 }
 
 
@@ -1326,6 +1144,9 @@ function createRandomClickMarker(markerData) {
 
 // get the data for the contours between start and end
 function getContourData() {
+
+  $('#SLC-map').LoadingOverlay("show");
+
   console.log(pastDate)
   console.log(today)
 
@@ -1344,7 +1165,7 @@ function getContourData() {
 
     theContours.sort((a, b) => (new Date(a.time) > new Date(b.time)) ? 1 : ((new Date(b.time) > new Date(a.time)) ? -1 : 0));
 
-    $('body').LoadingOverlay("hide");
+    $('#SLC-map').LoadingOverlay("hide");
 
   }).catch(function(err){
 
@@ -2162,7 +1983,7 @@ function createNewMarker(location) {
         id: markerID,
         time: new Date(d.time),
         pm25: d.pm25,
-        contour: d.contour
+        contour: d.contour          // DO I NEED THIS TODO
       };
     }).filter((d) => {
       return d.pm25 === 0 || !!d.pm25; // forces NaN, null, undefined to be false, all other values to be true
@@ -2182,4 +2003,42 @@ function createNewMarker(location) {
     alert('error, request failed!');
     console.log('Error: ', err)
   });
+}
+
+
+function flipMapDataVis() {
+
+  if (showSensors) {
+    showSensors = false;
+
+    // theMap.removeLayer(sensLayer);
+    sensLayer.eachLayer(function(aLayer) {
+      theMap.removeLayer(aLayer);
+      sensLayer.removeLayer(aLayer);
+    });
+
+  } else {
+    showSensors = true;
+
+    clearMapSVG();
+
+  }
+
+  showMapDataVis();
+}
+
+
+function clearMapSVG() {
+  var mapSVG = d3.select("#SLC-map").select("svg.leaflet-zoom-animated");
+  mapSVG.select("g").selectAll('path').remove();
+}
+
+
+function hideSlider() {
+  d3.select("#slider").classed('hide', true);
+}
+
+
+function showSlider() {
+  d3.select("#slider").classed('hide', false);
 }
