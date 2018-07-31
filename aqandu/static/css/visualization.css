@@ -473,9 +473,29 @@ input:valid ~ span.validity:after {
   color: #555;
 
   line-height: 18px;
-  margin: 0px 0px 0px 10px;
+  margin: 0px 0px 0px 5px;
   display: block;
 }
+
+
+.notSelectedLabel {
+  padding-right: 5px;
+
+  color: #ffffff;
+}
+
+
+.selectedLabel {
+  padding-right: 5px;
+
+  color: #808080;
+}
+
+
+#labelContainer {
+  margin-top: 15px;
+}
+
 
 .theHR {
   margin: 10px 0px 5px;
@@ -486,11 +506,9 @@ input:valid ~ span.validity:after {
   /* text-decoration: underline #c00; */
 /* } */
 
-label.clickedLegendElement {
+/* label.clickedLegendElement {
   text-decoration: underline #808080;
-  /* font-family: 'Open Sans Extra-Bold';
-  font-weight: 900; */
-}
+} */
 
 /* .txt {
   font-size: 14px;

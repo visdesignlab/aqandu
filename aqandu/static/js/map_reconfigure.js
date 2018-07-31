@@ -632,7 +632,6 @@ function setupMap() {
     colorLegend.setAttribute('id', 'colorLegend');
     legendContainer.appendChild(colorLegend);
 
-
     // close button
     var closeButtonContainer = document.createElement('div');
     closeButtonContainer.setAttribute('class', 'closeButton');
@@ -658,10 +657,14 @@ function setupMap() {
     var from;
     var to;
 
-    var title = document.createElement('div');
+    var title = document.createElement('span');
     title.setAttribute("id", 'PM25level');
     title.setAttribute("class", "legendTitle");
     colorLegend.appendChild(title);
+
+    var labelContainer = L.DomUtil.create('div');
+    labelContainer.setAttribute('id', 'labelContainer');
+    colorLegend.appendChild(labelContainer);
 
     var theTitleContent = document.createTextNode("PM2.5 [µg/m\u00B3]:");
     title.appendChild(theTitleContent);
@@ -685,7 +688,7 @@ function setupMap() {
 
       lastElement = tmp;
 
-      colorLegend.appendChild(tmp);
+      labelContainer.appendChild(tmp);
     })
 
     var lastSpan = document.createElement('span');
@@ -706,7 +709,7 @@ function setupMap() {
     var titleDataSource = d3div.append('span')
          .attr('id', 'datasource')
          .attr('class', 'legendTitle')
-         .html('Data sources:&nbsp;&nbsp;');
+         .html('Data sources:');
 
 
     var dataLabel = ["airu", "PurpleAir", "Mesowest", "DAQ"];
@@ -719,6 +722,13 @@ function setupMap() {
     labels = labels.merge(labelsEnter);
     labels.text(d => d);
 
+    labels.insert('span', function() {
+            return this.childNodes[0];
+          })
+          .classed('notSelectedLabel', true)
+          .append('i')
+          .attr('class', 'fas fa-circle');
+
     labels.append('span')
       .attr("id", d => 'numberof_' + d);
 
@@ -727,6 +737,8 @@ function setupMap() {
       // element in sensor type legend has been clicked (was already selected) or another element has been selected
 
         d3.select('.clickedLegendElement').classed('clickedLegendElement', false)
+        d3.select('.selectedLabel').classed('notSelectedLabel', true);
+        d3.select('.selectedLabel').classed('selectedLabel', false);
         if (currentlySelectedDataSource === d) {
           // remove notPartOfGroup class
           // remove colored-border-selected class
@@ -738,6 +750,8 @@ function setupMap() {
           // moved from one element to another without first unchecking it
 
           d3.select(d3.event.currentTarget).classed('clickedLegendElement', true)
+          d3.select(d3.event.currentTarget).select('span').classed('notSelectedLabel', false);
+          d3.select(d3.event.currentTarget).select('span').classed('selectedLabel', true);
 
           d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('notPartOfGroup', true);
           d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('partOfGroup-border', false);
@@ -752,6 +766,8 @@ function setupMap() {
         // remove partOfGroup-border for all dots and add it only for the selected ones
 
         d3.select(d3.event.currentTarget).classed('clickedLegendElement', true)
+        d3.select(d3.event.currentTarget).select('span').classed('notSelectedLabel', false);
+        d3.select(d3.event.currentTarget).select('span').classed('selectedLabel', true);
 
         d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('notPartOfGroup', true);
         d3.select('#SLC-map').selectAll('.dot:not(noColor)').classed('partOfGroup-border', false);
