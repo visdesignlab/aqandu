@@ -1232,7 +1232,7 @@ function updateDots() {
 
     // apply conversion for purple air
     Object.keys(data).forEach(function(key) {
-        console.log(key, data[key]);
+        // console.log(key, data[key]);
         let sensorModel = data[key]['Sensor Model'];
         let sensorSource = data[key]['Sensor Source'];
         // console.log(conversionPM(data[key]['last'], sensorModel))
@@ -1261,7 +1261,7 @@ function updateDots() {
           theColor = getColor(currentPM25);
         }
 
-        console.log(layer.id + ' ' + theColor + ' ' + currentPM25)
+        // console.log(layer.id + ' ' + theColor + ' ' + currentPM25)
         $(layer._icon).removeClass(epaColors.join(' '))
         $(layer._icon).addClass(theColor)
       }
