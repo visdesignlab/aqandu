@@ -7,9 +7,11 @@
 
 
 // setting dates for timeline and for ajax calls
-const todayDate = new Date('Mon Jul 09 2018 17:00:00 GMT-0600');
+// const todayDate = new Date('Mon Jul 09 2018 17:00:00 GMT-0600');
+const todayDate = new Date('Mon Jul 25 2018 01:00:00 GMT-0600');
 const today = todayDate.toISOString().substr(0, 19) + 'Z';
-const date = new Date('Mon Jul 09 2018 17:00:00 GMT-0600');
+// const date = new Date('Mon Jul 09 2018 17:00:00 GMT-0600');
+const date = new Date('Mon Jul 25 2018 01:00:00 GMT-0600');
 date.setDate(date.getDate() - 1);
 let pastDate = date.toISOString().substr(0, 19) + 'Z';
 
@@ -957,7 +959,7 @@ function setupMap() {
     sensorLayerRandomMarker(randomClickMarker)
 
 
-    var estimatesForLocationURL = generateURL(dbEndpoint, '/getEstimatesForLocation', {"location": {'lat': clickLocation['lat'], 'lng': clickLocation['lng']}, 'start': pastDate, 'end': today})
+    var estimatesForLocationURL = generateURL(dbEndpoint, '/getEstimatesForLocation_debugging', {"location": {'lat': clickLocation['lat'], 'lng': clickLocation['lng']}, 'start': pastDate, 'end': today})
 
     console.log(estimatesForLocationURL);
 
