@@ -21,6 +21,10 @@ function generateURL(anEndpoint, route, parameters) { // eslint-disable-line no-
     url = `${baseURL}${anEndpoint}${route}?start=${parameters.start}&end=${parameters.end}`;
   } else if (route === '/getLatestContour') {
     url = `${baseURL}${anEndpoint}${route}`;
+  } else if (route === '/contours_debugging') {
+    url = `${baseURL}${anEndpoint}${route}?start=${parameters.start}&end=${parameters.end}`;
+  } else if (route === '/getLatestContour_debugging') {
+    url = `${baseURL}${anEndpoint}${route}`;
   } else if (route === '/getEstimatesForLocation') {
     url = `${baseURL}${anEndpoint}${route}?location_lat=${parameters.location.lat}&location_lng=${parameters.location.lng}&start=${parameters.start}&end=${parameters.end}`;
   }

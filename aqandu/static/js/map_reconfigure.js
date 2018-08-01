@@ -46,7 +46,7 @@ const liveSensorURL_airU = generateURL(dbEndpoint, '/liveSensors', {'type': 'air
 const liveSensorURL_all = generateURL(dbEndpoint, '/liveSensors', {'type': 'all'});
 const lastPM25ValueURL = generateURL(dbEndpoint, '/lastValue', {'fieldKey': 'pm25'});
 // const contoursURL = generateURL(dbEndpoint, '/contours', null);
-const lastContourURL = generateURL(dbEndpoint, '/getLatestContour', null);
+const lastContourURL = generateURL(dbEndpoint, '/getLatestContour_debugging', null);
 
 
 let theMap;
@@ -1333,7 +1333,7 @@ function getContourData() {
   console.log(pastDate)
   console.log(today)
 
-  var contoursURL = generateURL(dbEndpoint, '/contours', {'start': pastDate, 'end': today})
+  var contoursURL = generateURL(dbEndpoint, '/contours_debugging', {'start': pastDate, 'end': today})
 
   getDataFromDB(contoursURL).then(data => {
 
