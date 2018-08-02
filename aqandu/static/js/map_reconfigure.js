@@ -24,6 +24,7 @@ const slcMap = L.map('SLC-map', {
     center: [40.748808, -111.8896],
     zoom: 13,
     contextmenu: true,
+    contextmenuWidth: 140,
     contextmenuItems: [{
       text: 'Create Marker',
       callback: createNewMarker
