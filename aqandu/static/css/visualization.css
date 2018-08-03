@@ -387,12 +387,12 @@ input:valid ~ span.validity:after {
   background-color: #ffffff;
   height: 37%;
 }
-
+/* 
 @media only screen and (max-height: 900px) {
   #timeline {
     bottom: -37%;
   }
-}
+} */
 
 
 /* SLIDER */

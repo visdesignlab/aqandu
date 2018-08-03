@@ -76,7 +76,9 @@ function startTheWholePage() {
   // $(document).ready(init);
   // init()
   $('body').LoadingOverlay("show");
-  window.onresize = init();
+  setUpTimeline();
+  // don't use setUpTimeline() because it's only the reference to a function that is needed
+  window.onresize = setUpTimeline;
 
   // theMap = setupMap(imageUrl);
   theMap = setupMap();
@@ -179,7 +181,7 @@ function startTheWholePage() {
 
 
 
-function init() {
+function setUpTimeline() {
 
   // sets the from date for the timeline when the radio button is changed
   $('#timelineControls input[type=radio]').on('change', function() {
