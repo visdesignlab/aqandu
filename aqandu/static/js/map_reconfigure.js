@@ -91,6 +91,9 @@ function startTheWholePage() {
 
   sensLayer.addTo(theMap);
 
+  // from https://github.com/aratcliffe/Leaflet.contextmenu/issues/37
+  slcMap.contextmenu.disable();
+
   // shows either the sensors or the contours
   showMapDataVis();
 
@@ -2028,6 +2031,8 @@ function flipMapDataVis() {
   if (showSensors) {
     showSensors = false;
 
+    slcMap.contextmenu.enable();
+
     // theMap.removeLayer(sensLayer);
     sensLayer.eachLayer(function(aLayer) {
       theMap.removeLayer(aLayer);
@@ -2036,6 +2041,8 @@ function flipMapDataVis() {
 
   } else {
     showSensors = true;
+
+    slcMap.contextmenu.disable();
 
     clearMapSVG();
 
