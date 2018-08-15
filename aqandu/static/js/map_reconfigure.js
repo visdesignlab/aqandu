@@ -273,7 +273,6 @@ function setUpTimeline() {
 
 
     if (!showSensors) {
-      // $('body').LoadingOverlay("show");
       getContourData();
     } else {
       // need to do the same for the sensors TODO
@@ -1013,7 +1012,7 @@ function createMarker(markerData) {
     html: ''
   };
 
-  console.log(markerData);
+  // console.log(markerData);
 
   if (markerData.Latitude !== null && markerData.Longitude !== null) {
     let classList = 'dot';
@@ -1457,29 +1456,29 @@ function findCorners(ltlg) {
 }
 
 
-function findNearestSensor(cornerarray, mark, callback) {
-
-  getDataFromDB(liveSensorURL_all).then((data) => {
-
-    response = data.map((d) => {
-      // return only location and ID
-      const newD = {};
-      newD.ID = d.ID;
-      newD.Latitude = d.Latitude;
-      newD.Longitude = d.Longitude;
-      newD.SensorSource = d['Sensor Source']
-
-      return newD;
-    });
-
-    var closest = findDistance(response, mark); // returns closest sensor using distance equation
-    callback(closest);
-  }).catch((err) => {
-    alert("error, request failed!");
-    console.log("Error: ", err);
-    console.warn(arguments);
-  });
-}
+// function findNearestSensor(cornerarray, mark, callback) {
+//
+//   getDataFromDB(liveSensorURL_all).then((data) => {
+//
+//     response = data.map((d) => {
+//       // return only location and ID
+//       const newD = {};
+//       newD.ID = d.ID;
+//       newD.Latitude = d.Latitude;
+//       newD.Longitude = d.Longitude;
+//       newD.SensorSource = d['Sensor Source']
+//
+//       return newD;
+//     });
+//
+//     var closest = findDistance(response, mark); // returns closest sensor using distance equation
+//     callback(closest);
+//   }).catch((err) => {
+//     alert("error, request failed!");
+//     console.log("Error: ", err);
+//     console.warn(arguments);
+//   });
+// }
 
 
 // function addData (sensorData){

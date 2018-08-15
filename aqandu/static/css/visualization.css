@@ -1,14 +1,19 @@
 #mainpage {
   height: 100%;
   width: 100%;
+
+  /* z-index: 1000; */
 }
 
 #SLC-map {
   position: absolute;
-  top: 0px;
+  top: 44px;
 
-  height: 100%;
+  /* height: 100%; */
+  height: calc(100% - 44px);
   width: 100%;
+
+  /* z-index: 1000; */
 }
 
 svg text {
@@ -429,7 +434,8 @@ input:valid ~ span.validity:after {
 .leaflet-verticalcentertop {
   position: absolute;
   z-index: 1000; /* <-- new line! */
-  top: 17%;
+  /* top: 17%; */
+  top: 6%;
   transform: translateY(-10%);
   padding-top: 10px;
 }
