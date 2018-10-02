@@ -97,11 +97,14 @@ function startTheWholePage() {
   // shows either the sensors or the contours
   showMapDataVis();
 
-  // TODO can this layer stuff be made simpler??
-  // TO ADD THE LAYER ICON BACK uncomment the following lines and the line L.control.layers(null, overlayMaps).addTo(theMap);
+  // // TODO can this layer stuff be made simpler??
+  // // TO ADD THE LAYER ICON BACK uncomment the following lines and the line
   // var overlayMaps = {
-  //   "SensLayer": sensLayer
+  //   "Show Sensor": sensLayer
   // };
+  //
+  // L.control.layers(null, overlayMaps, {position: 'verticalcentertopleft'}).addTo(theMap);
+
 
 
 
@@ -580,45 +583,51 @@ function setupMap() {
   // adding new placeholders for leaflet controls
   addControlPlaceholders(slcMap);
 
+// TODO to be deleted
+  // // legend reappearing button
+  // var reappearControlContainer = L.control({position: 'verticalcentertopright'});
+  // reappearControlContainer.onAdd = function () {
+  //
+  //   var reappearingButton = document.createElement('div');
+  //   reappearingButton.setAttribute('class', 'closeButton');
+  //   reappearingButton.setAttribute('id', 'openLegendButton');
+  //
+  //   var i_reappearingButton = document.createElement('i');
+  //   i_reappearingButton.setAttribute('class', 'aqu_icon fas fa-list fa-2x')
+  //   reappearingButton.appendChild(i_reappearingButton);
+  //
+  //   return reappearingButton
+  // }
+  //
+  // reappearControlContainer.addTo(slcMap);
+  //
+  // $('#openLegendButton').hide();
 
-  // legend reappearing button
-  var reappearControlContainer = L.control({position: 'verticalcentertopright'});
-  reappearControlContainer.onAdd = function () {
+  createCloseButton('verticalcentertopright', 'closeButton', 'openLegendButton', true)
 
-    var reappearingButton = document.createElement('div');
-    reappearingButton.setAttribute('class', 'closeButton');
-    reappearingButton.setAttribute('id', 'openLegendButton');
+// TODO to be deleted
+  // // timeline reappearing button
+  // var reappearTimelineControlContainer = L.control({position: 'verticalcenterbottomleft'});
+  // reappearTimelineControlContainer.onAdd = function () {
+  //
+  //   var reappearingTimelineButton = document.createElement('div');
+  //   reappearingTimelineButton.setAttribute('class', 'closeButton');
+  //   reappearingTimelineButton.setAttribute('id', 'openTimelineButton');
+  //
+  //   var i_reappearingTimelineButton = document.createElement('i');
+  //   i_reappearingTimelineButton.setAttribute('class', 'aqu_icon fas fa-list fa-2x')
+  //   reappearingTimelineButton.appendChild(i_reappearingTimelineButton);
+  //
+  //   return reappearingTimelineButton
+  // }
+  //
+  // reappearTimelineControlContainer.addTo(slcMap);
+  //
+  // $('#openTimelineButton').hide();
 
-    var i_reappearingButton = document.createElement('i');
-    i_reappearingButton.setAttribute('class', 'aqu_icon fas fa-list fa-2x')
-    reappearingButton.appendChild(i_reappearingButton);
+  createCloseButton('verticalcenterbottomleft', 'closeButton', 'openTimelineButton', true)
 
-    return reappearingButton
-  }
-
-  reappearControlContainer.addTo(slcMap);
-
-  $('#openLegendButton').hide();
-
-
-  // timeline reappearing button
-  var reappearTimelineControlContainer = L.control({position: 'verticalcenterbottomleft'});
-  reappearTimelineControlContainer.onAdd = function () {
-
-    var reappearingTimelineButton = document.createElement('div');
-    reappearingTimelineButton.setAttribute('class', 'closeButton');
-    reappearingTimelineButton.setAttribute('id', 'openTimelineButton');
-
-    var i_reappearingTimelineButton = document.createElement('i');
-    i_reappearingTimelineButton.setAttribute('class', 'aqu_icon fas fa-list fa-2x')
-    reappearingTimelineButton.appendChild(i_reappearingTimelineButton);
-
-    return reappearingTimelineButton
-  }
-
-  reappearTimelineControlContainer.addTo(slcMap);
-
-  $('#openTimelineButton').hide();
+  createCloseButton('verticalcentertopleft', 'closeButton', 'changeOverlay', false)
 
 
 
@@ -831,6 +840,32 @@ function setupMap() {
   slcMap.zoomControl.setPosition('verticalcentertopleft');
 
   return slcMap;
+}
+
+
+function createCloseButton(thePosition, buttonClass, buttonID, hideButton) {
+
+  var buttonControlContainer = L.control({position: thePosition});
+  buttonControlContainer.onAdd = function () {
+
+    var aButton = document.createElement('div');
+    aButton.setAttribute('class', buttonClass);
+    aButton.setAttribute('id', buttonID);
+
+    var iButton = document.createElement('i');
+    iButton.setAttribute('class', 'aqu_icon fas fa-list fa-2x')
+    aButton.appendChild(iButton);
+
+    return aButton
+  }
+
+  buttonControlContainer.addTo(slcMap);
+
+  if (hideButton) {
+    // hide the button
+    $('#' + buttonID).hide();
+  }
+
 }
 
 
@@ -2030,6 +2065,7 @@ function flipMapDataVis() {
   if (showSensors) {
     showSensors = false;
 
+    // allow marker creation contextual menu
     slcMap.contextmenu.enable();
 
     // theMap.removeLayer(sensLayer);
