@@ -288,7 +288,7 @@ input:valid ~ span.validity:after {
 }
 
 
-.closeButton {
+.customButton {
   background-color: #ffffff;
 
   width: 30px;
@@ -302,7 +302,7 @@ input:valid ~ span.validity:after {
   font-weight: 400;
 }
 
-.closeButton a {
+.customButton a {
   display: block;
   text-align: center;
   font-size: 22px;
@@ -313,7 +313,11 @@ input:valid ~ span.validity:after {
   text-decoration: none;
 }
 
-.closeButton a:hover {
+.customButton a:hover {
+  background-color: #f2f2f2;
+}
+
+.customButton:hover {
   background-color: #f2f2f2;
 }
 
@@ -324,10 +328,6 @@ input:valid ~ span.validity:after {
   right: 10px;
 
   font-size: 12px;
-}
-
-#openLegendButton:hover, #openTimelineButton:hover, #openTimelineControlButton:hover {
-  background-color: #f2f2f2;
 }
 
 

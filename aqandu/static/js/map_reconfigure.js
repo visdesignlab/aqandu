@@ -603,7 +603,7 @@ function setupMap() {
   //
   // $('#openLegendButton').hide();
 
-  createCloseButton('verticalcentertopright', 'closeButton', 'openLegendButton', true)
+  createCustomButton('verticalcentertopright', 'customButton', 'openLegendButton', 'fa-list', true)
 
 // TODO to be deleted
   // // timeline reappearing button
@@ -625,9 +625,9 @@ function setupMap() {
   //
   // $('#openTimelineButton').hide();
 
-  createCloseButton('verticalcenterbottomleft', 'closeButton', 'openTimelineButton', true)
+  createCustomButton('verticalcenterbottomleft', 'customButton', 'openTimelineButton', 'fa-list', true);
 
-  createCloseButton('verticalcentertopleft', 'closeButton', 'changeOverlay', false)
+  createCustomButton('verticalcentertopleft', 'customButton', 'changeOverlay', 'fa-layer-group', false);
 
 
 
@@ -646,12 +646,12 @@ function setupMap() {
 
     // close button
     var closeButtonContainer = document.createElement('div');
-    closeButtonContainer.setAttribute('class', 'closeButton');
+    closeButtonContainer.setAttribute('class', 'customButton');
     closeButtonContainer.setAttribute('id', 'closeLegendButton');
     legendContainer.appendChild(closeButtonContainer);
 
     var closeButton_a = document.createElement('a');
-    closeButton_a.setAttribute('class', 'closeButton_a');
+    // closeButton_a.setAttribute('class', 'customButton');
     closeButton_a.setAttribute('href', "#");
     var createAText = document.createTextNode('X');
     closeButton_a.appendChild(createAText);
@@ -835,6 +835,14 @@ function setupMap() {
     $('#openTimelineButton').hide();
   });
 
+
+  // change the overlay
+  $('#changeOverlay').on("click", function() {
+    console.log('change the overlay');
+
+    flipMapDataVis();
+  });
+
   // Change the position of the Zoom Control to a newly created placeholder.
   // slcMap.zoomControl.setPosition('verticalcenterbottomright');
   slcMap.zoomControl.setPosition('verticalcentertopleft');
@@ -843,7 +851,7 @@ function setupMap() {
 }
 
 
-function createCloseButton(thePosition, buttonClass, buttonID, hideButton) {
+function createCustomButton(thePosition, buttonClass, buttonID, faIcon, hideButton) {
 
   var buttonControlContainer = L.control({position: thePosition});
   buttonControlContainer.onAdd = function () {
@@ -853,7 +861,7 @@ function createCloseButton(thePosition, buttonClass, buttonID, hideButton) {
     aButton.setAttribute('id', buttonID);
 
     var iButton = document.createElement('i');
-    iButton.setAttribute('class', 'aqu_icon fas fa-list fa-2x')
+    iButton.setAttribute('class', 'aqu_icon fas ' + faIcon + ' fa-2x')
     aButton.appendChild(iButton);
 
     return aButton
