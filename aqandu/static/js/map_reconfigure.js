@@ -1212,28 +1212,68 @@ function getContourData() {
   console.log(pastDate)
   console.log(today)
 
-  var contoursURL = generateURL(dbEndpoint, '/contours', {'start': pastDate, 'end': today})
+  // get difference between the dates in displays
+  var diffDays = Math.ceil((new Date(today)-new Date(pastDate))/(1000*60*60*24));
+  console.log(diffDays);
 
-  getDataFromDB(contoursURL).then(data => {
+  // if more than 1 day, load each day separately
+  var contoursURL = '';
+  var endDate = today;
+  // let chain = Promise.resolve([]);
+  // let theContours = []
+  var listOfPromises = [];
+  for (let i = 1; i <= diffDays; i++) {
 
-    console.log(contoursURL)
+      var anIntermediateDate = new Date(today);
+      anIntermediateDate.setDate(anIntermediateDate.getDate() - i);
+      var startDate = anIntermediateDate.toISOString().substr(0, 19) + 'Z';
 
-    console.log('contour data')
-    console.log(data)
-    theContours = data
-    // theContours.sort((a, b) => Math.abs(new Date(a.time) - new Date(b.time)) - Math.abs(new Date(b.time) - new Date(a.time)))
-    // process contours data
-    // setContour(slcMap, data);
+      console.log(startDate)
+      console.log(endDate)
 
+
+
+      var contoursURL = generateURL(dbEndpoint, '/contours', {'start': startDate, 'end': endDate});
+      console.log(contoursURL);
+
+      listOfPromises.push(getDataFromDB(contoursURL));
+
+      endDate = startDate
+  }
+
+  console.log(listOfPromises)
+
+  Promise.all(listOfPromises).then(result => {
+    theContours = result.flat();
     theContours.sort((a, b) => (new Date(a.time) > new Date(b.time)) ? 1 : ((new Date(b.time) > new Date(a.time)) ? -1 : 0));
 
+    console.log(theContours);
     $('#SLC-map').LoadingOverlay("hide");
+  })
 
-  }).catch(function(err){
 
-      alert("error, request failed!");
-      console.log("Error: ", err)
-  });
+  // var contoursURL = generateURL(dbEndpoint, '/contours', {'start': pastDate, 'end': today})
+  //
+  // getDataFromDB(contoursURL).then(data => {
+  //
+  //   console.log(contoursURL)
+  //
+  //   console.log('contour data')
+  //   console.log(data)
+  //   theContours = data
+  //   // theContours.sort((a, b) => Math.abs(new Date(a.time) - new Date(b.time)) - Math.abs(new Date(b.time) - new Date(a.time)))
+  //   // process contours data
+  //   // setContour(slcMap, data);
+  //
+  //   theContours.sort((a, b) => (new Date(a.time) > new Date(b.time)) ? 1 : ((new Date(b.time) > new Date(a.time)) ? -1 : 0));
+  //
+  //   $('#SLC-map').LoadingOverlay("hide");
+  //
+  // }).catch(err => {
+  //
+  //     alert("error, request failed!");
+  //     console.log("Error: ", err)
+  // });
 }
 
 
@@ -1985,11 +2025,16 @@ function conversionPM(pm, sensorSource, sensorModel) {
     if (model === 'PMS5003') {
       // console.log('PMS5003')
       // pmv = (-1) * 64.48285 * Math.log(0.97176 - (0.01008 * pm));
-      pmv = 0.7778*pm + 2.6536;
+      // pmv = 0.7778*pm + 2.6536; // until October 10, 2018
+
+      pmv = 0.433*pm + 3.32; // wildfire
     } else if (model === 'PMS1003') {
       // console.log('PMS1003')
       // pmv = (-1) * 54.22405 * Math.log(0.98138 - (0.00772 * pm));
-      pmv = 0.5431*pm + 1.0607;
+      // pmv = 0.5431*pm + 1.0607; // until October 10, 2018
+
+      pmv = 0.419*pm + 4.63; // wildfire
+
     } else {
       pmv = pm;
     }
@@ -1997,7 +2042,7 @@ function conversionPM(pm, sensorSource, sensorModel) {
     // console.log(sensorModel + ' no model?');
     // airu
     // pmv = pm;
-    pmv = 0.8582*pm + 1.1644;
+    pmv = 0.8582*pm + 1.1644; // until October 10, 2018
   }
 
   return pmv;
