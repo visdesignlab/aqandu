@@ -1602,9 +1602,11 @@ function preprocessDBData(id, sensorData) {
       // pm25: d['pm25']
       pm25: conversionPM(d.pm25, sensorSource, sensorModel)
     };
-  }).filter((d) => {
-    return d.pm25 === 0 || !!d.pm25; // forces NaN, null, undefined to be false, all other values to be true
-  });
+  })
+
+  // .filter((d) => {
+  //   return d.pm25 === 0 || !!d.pm25; // forces NaN, null, undefined to be false, all other values to be true
+  // });
 
   var present = false;
   for (var i = 0; i < lineArray.length; i++) {
@@ -1642,7 +1644,7 @@ function drawChart() {
   var pmFormat = d3.format(s);
 
   // Scale the range of the data
-  var valueline = d3.line()
+  var valueline = d3.line().defined(function (d) { return d.pm25; })
     .x(function (d) {
       return x(d.time);
     })
@@ -2015,34 +2017,43 @@ PM2.5,TEOM =−64.48285ln(0.97176−0.01008PM2.5,PMS5003)
 */
 function conversionPM(pm, sensorSource, sensorModel) {
 
-  if (sensorSource != 'airu' ) {
-    let model = null;
-    if (sensorModel != null) {
-      model = sensorModel.split('+')[0];
-    }
+  var pmv = null;
 
-    var pmv = 0;
-    if (model === 'PMS5003') {
-      // console.log('PMS5003')
-      // pmv = (-1) * 64.48285 * Math.log(0.97176 - (0.01008 * pm));
-      // pmv = 0.7778*pm + 2.6536; // until October 10, 2018
+  if (pm != null) {
+    // if pm is null keep it null
+    if (sensorSource != 'airu' ) {
 
-      pmv = 0.433*pm + 3.32; // wildfire
-    } else if (model === 'PMS1003') {
-      // console.log('PMS1003')
-      // pmv = (-1) * 54.22405 * Math.log(0.98138 - (0.00772 * pm));
-      // pmv = 0.5431*pm + 1.0607; // until October 10, 2018
+      let model = null;
+      if (sensorModel != null) {
+        model = sensorModel.split('+')[0];
+      }
 
-      pmv = 0.419*pm + 4.63; // wildfire
+      // var pmv = 0;
+      if (model === 'PMS5003') {
+        // console.log('PMS5003')
+        // pmv = (-1) * 64.48285 * Math.log(0.97176 - (0.01008 * pm));
+        // pmv = 0.7778*pm + 2.6536; // until October 10, 2018
 
+        pmv = (0.432805631 * pm) + 3.316987; // wildfire
+
+      } else if (model === 'PMS1003') {
+        // console.log('PMS1003')
+        // pmv = (-1) * 54.22405 * Math.log(0.98138 - (0.00772 * pm));
+        // pmv = 0.5431*pm + 1.0607; // until October 10, 2018
+        pmv = (0.418860234 * pm) + 4.630728956; // wildfire
+
+      } else {
+        pmv = pm;
+      }
     } else {
-      pmv = pm;
+      // console.log(sensorModel + ' no model?');
+      // airu
+      // pmv = pm;
+
+      // airu calibration
+      // pmv = 0.8582*pm + 1.1644; // until October 10, 2018
+      pmv = (0.448169438 * pm) + 5.885118729; // wildfire
     }
-  } else {
-    // console.log(sensorModel + ' no model?');
-    // airu
-    // pmv = pm;
-    pmv = 0.8582*pm + 1.1644; // until October 10, 2018
   }
 
   return pmv;
