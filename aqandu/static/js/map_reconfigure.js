@@ -50,7 +50,7 @@ let liveSensors = [];
 let liveSensorsData = [];
 
 const dbEndpoint = '/dbapi/api';
-const liveSensorURL_purpleAir = generateURL(dbEndpoint, '/liveSensors', {'type': 'purpleAir'});
+// const liveSensorURL_purpleAir = generateURL(dbEndpoint, '/liveSensors', {'type': 'purpleAir'});
 const liveSensorURL_airU = generateURL(dbEndpoint, '/liveSensors', {'type': 'airU'});
 const liveSensorURL_all = generateURL(dbEndpoint, '/liveSensors', {'type': 'all'});
 const lastPM25ValueURL = generateURL(dbEndpoint, '/lastValue', {'fieldKey': 'pm25'});
@@ -68,6 +68,10 @@ let currentlySelectedDataSource = 'none';
 
 // ids for the double clicks on the map
 let latestGeneratedID = -1;
+
+let dotsUpdateID;
+let sensorUpdateID;
+let contourUpdateID;
 
 
 // function run when page has finished loading all DOM elements and they are ready to use
@@ -153,17 +157,22 @@ function showMapDataVis() {
   if (showSensors) {
     // showSensors is true show only sensor, not the contours
 
+    clearInterval(contourUpdateID)
+
     // get and set the last sensor data
     drawSensorOnMap();
 
     hideSlider();
 
     // there is new data every minute for a sensor in the db
-    setInterval('updateDots()', 60000);  // 60'000 = 60'000 miliseconds = 60 seconds = 1 min
-    setInterval('updateSensors()', 300000); // update every 5min
+    dotsUpdateID = setInterval('updateDots()', 60000);  // 60'000 = 60'000 miliseconds = 60 seconds = 1 min
+    sensorUpdateID = setInterval('updateSensors()', 300000); // update every 5min
 
   } else {
     // showSensors is false show only contours, not the sensors
+
+    clearInterval(dotsUpdateID)
+    clearInterval(sensorUpdateID)
 
     getContourData();
 
@@ -185,7 +194,7 @@ function showMapDataVis() {
     // get all sensor data for interactive brushing
     // getAllSensorData()
 
-    setInterval('updateContour()', 300000); // update every 5min
+    contourUpdateID = setInterval('updateContour()', 300000); // update every 5min
 
 
   }
@@ -426,8 +435,9 @@ function setUpTimeline() {
 
 
   // adding the graph
-  var graph = d3.select('#graph')
-                .attr("transform", "translate(0, 20)")
+  // var graph = d3.select('#graph')
+  d3.select('#graph')
+    .attr("transform", "translate(0, 20)")
 
   svg.attr("width", svgWidth)
      .attr("height", svgHeight);
@@ -665,9 +675,9 @@ function setupMap() {
     // reversed both grades and colors array
     var grades = [4, 8, 12, 20, 28, 35, 42, 49, 55, 150, 250, 350].reverse()
     var colors = ['green1', 'green2', 'green3', 'yellow1', 'yellow2', 'yellow3', 'orange1', 'orange2', 'orange3', 'red1', 'veryUnhealthyRed1', 'hazardousRed1'].reverse()
-    var colorLabels = [];
-    var from;
-    var to;
+    // var colorLabels = [];
+    // var from;
+    // var to;
 
     var title = document.createElement('span');
     title.setAttribute("id", 'PM25level');
@@ -985,6 +995,12 @@ function drawSensorOnMap() {
   $('#SLC-map').LoadingOverlay("show");
 
   getDataFromDB(liveSensorURL_all).then((data) => {
+    console.log("initial data :" + data.length)
+
+    // let timeNow = Date.now();
+    // // let sensorWithDataInLast5min = data
+    // let sensorWithDataInLast5min = data.filter(sensor => Math.abs(timeNow - sensor['time'])/(1000*60) <= 5.0)
+    // console.log("filtered data :" + sensorWithDataInLast5min.length)
 
     var numberOfPurpleAir = data.filter(sensor => sensor['Sensor Source'] === 'Purple Air').length;
     $('#numberof_PurpleAir').html(numberOfPurpleAir);
@@ -999,9 +1015,7 @@ function drawSensorOnMap() {
     $('#numberof_DAQ').html(numberOfDAQ);
 
     const response = data.map((d) => {
-      // if (d['Sensor Source'] === 'Purple Air') {
       d.pm25 = conversionPM(d.pm25, d['Sensor Source'], d['Sensor Model']);
-      // }
 
       return d
     });
@@ -1009,7 +1023,7 @@ function drawSensorOnMap() {
     sensorLayer(response);
 
     data.forEach(function(aSensor) {
-      liveSensors.push({'id': aSensor.ID, 'sensorSource': aSensor['Sensor Source']});
+      liveSensors.push({'id': aSensor.ID.split(' ').join('_'), 'sensorSource': aSensor['Sensor Source']});
     });
 
 // removed this call to get all sensor Data TODO
@@ -1031,17 +1045,17 @@ function drawSensorOnMap() {
  * @param  {[type]} response [description]
  * @return {[type]}          [description]
  */
-function sensorLayer(response){
+function sensorLayer(response) {
   response.forEach(createMarker);
 }
 
 
-function sensorLayerDebugging(response){
+function sensorLayerDebugging(response) {
   response.forEach(createMarkerDebugging);
 }
 
 // layer with the marks where people clicked
-function sensorLayerRandomMarker(response){
+function sensorLayerRandomMarker(response) {
   response.forEach(createRandomClickMarker);
 }
 
@@ -1057,35 +1071,44 @@ function createMarker(markerData) {
 
   // console.log(markerData);
 
+  let sensorSource = markerData['Sensor Source'];
+  console.log(sensorSource);
+
   if (markerData.Latitude !== null && markerData.Longitude !== null) {
     let classList = 'dot';
     let currentPM25 = markerData.pm25;
 
     // if (markerData.time != undefined) {
-      let currentTime = new Date().getTime()
-      let timeLastMeasurement = markerData.time;
-      let minutesINBetween = (currentTime - timeLastMeasurement) / (1000 * 60);
-    // } else {
-    //   minutesINBetween = 1
+    let currentTime = new Date().getTime();
+    let timeLastMeasurement = markerData.time;
+    let minutesINBetween = (currentTime - timeLastMeasurement) / (1000 * 60);
+
+    // console.log(currentTime)
+    // console.log(timeLastMeasurement)
+    // console.log(minutesINBetween)
+    //
+    // if (minutesINBetween =='undefined') {
+    //   console('ahhhhhh')
     // }
 
-    let theColor
-    if (markerData['Sensor Source'] === 'airu') {
-      if (minutesINBetween < 5.0) {
-        theColor = getColor(currentPM25);
-      } else {
-        theColor = 'noColor';
-      }
-    } else {
-      theColor = getColor(currentPM25);
-    }
+    let theColor = displaySensor(sensorSource, minutesINBetween, currentPM25)
+
+    // if (markerData['Sensor Source'] === 'airu') {
+    //   if (minutesINBetween < 5.0) {
+    //     theColor = getColor(currentPM25);
+    //   } else {
+    //     theColor = 'noColor';
+    //   }
+    // } else {
+    //   theColor = getColor(currentPM25);
+    // }
 
     // let theColor = getColor(markerData["pm25"]);
     // console.log(item["ID"] + ' ' + theColor + ' ' + item["pm25"])
     classList = classList + ' ' + theColor + ' ';
 
     // throw away the spaces in the sensor name string so we have a valid class name
-    classList += markerData["Sensor Source"].replace(/ /g, '');
+    classList += sensorSource.replace(/ /g, '');
     // classList += ' ' + item['ID'];
     dotIcon.className = classList;
 
@@ -1098,12 +1121,12 @@ function createMarker(markerData) {
     ).addTo(sensLayer);
 
     mark.id = markerData['ID'];
-    if (markerData["Sensor Source"] == "airu") {
+    if (sensorSource == "airu") {
       liveAirUSensors.push(markerData.ID)
     }
 
     mark.bindPopup(
-      L.popup({closeButton: false, className: 'sensorInformationPopup'}).setContent('<span class="popup">' + markerData["Sensor Source"] + ': ' + markerData.ID + '</span>'))
+      L.popup({closeButton: false, className: 'sensorInformationPopup'}).setContent('<span class="popup">' + sensorSource + ': ' + markerData.ID + '</span>'))
     // mark.bindPopup(popup)
 
     mark.on('click', populateGraph)
@@ -1335,17 +1358,34 @@ function updateDots() {
         let minutesINBetween = (currentTime - timeLastMeasurement) / (1000 * 60);
 
         let currentPM25 = data[layer.id].last;
+        let theSensorSource = data[layer.id]['Sensor Source']
 
-        let theColor
-        if (data[layer.id]['Sensor Source'] === 'airu') {
-          if (minutesINBetween < 5.0) {
-            theColor = getColor(currentPM25);
-          } else {
-            theColor = 'noColor';
-          }
-        } else {
-          theColor = getColor(currentPM25);
-        }
+        let theColor = displaySensor(theSensorSource, minutesINBetween, currentPM25)
+        // let theColor = 'noColor';
+        // if (data[layer.id]['Sensor Source'] === 'airu' || data[layer.id]['Sensor Source'] === 'Purple Air') {
+        //   if (minutesINBetween < 10.0) {
+        //     theColor = getColor(currentPM25);
+        //   }
+        //   // else {
+        //   //   theColor = 'noColor';
+        //   // }
+        // } else if (data[layer.id]['Sensor Source'] === 'DAQ') {
+        //
+        //   if (minutesINBetween < 180.0) {
+        //     theColor = getColor(currentPM25);
+        //   }
+        //   // else {
+        //   //   theColor = 'noColor';
+        //   // }
+        // } else if (data[layer.id]['Sensor Source'] === 'Mesowest') {
+        //
+        //   if (minutesINBetween < 20.0) {
+        //     theColor = getColor(currentPM25);
+        //   }
+        //   // else {
+        //   //   theColor = 'noColor';
+        //   // }
+        // }
 
         // console.log(layer.id + ' ' + theColor + ' ' + currentPM25)
         $(layer._icon).removeClass(epaColors.join(' '))
@@ -1360,30 +1400,30 @@ function updateDots() {
   });
 }
 
-// gets object of sensor values for a given timestamp and sets the sensors dots to the right color
-function setDotValues(sensorValues) {
-
-  sensLayer.eachLayer(function(layer) {
-    if (sensorValues[layer.id] !== undefined) {
-      // let currentTime = new Date().getTime()
-      // let timeLastMeasurement = new Date(data[layer.id].time).getTime();
-      // let minutesINBetween = (currentTime - timeLastMeasurement) / (1000 * 60);
-
-      let pm25Value = conversionPM(sensorValues[layer.id].pm25, sensorValues[layer.id].sensorSource, sensorValues[layer.id].sensorModel)
-
-      let theColor = getColor(pm25Value);
-      // if (data[layer.id]['Sensor Source'] === 'airu') {
-      //     theColor = getColor(currentPM25);
-      // } else {
-      //   theColor = getColor(currentPM25);
-      // }
-
-      // console.log(layer.id + ' ' + theColor + ' ' + currentPM25)
-      $(layer._icon).removeClass(epaColors.join(' '))
-      $(layer._icon).addClass(theColor)
-    }
-  });
-}
+// // gets object of sensor values for a given timestamp and sets the sensors dots to the right color
+// function setDotValues(sensorValues) {
+//
+//   sensLayer.eachLayer(function(layer) {
+//     if (sensorValues[layer.id] !== undefined) {
+//       // let currentTime = new Date().getTime()
+//       // let timeLastMeasurement = new Date(data[layer.id].time).getTime();
+//       // let minutesINBetween = (currentTime - timeLastMeasurement) / (1000 * 60);
+//
+//       let pm25Value = conversionPM(sensorValues[layer.id].pm25, sensorValues[layer.id].sensorSource, sensorValues[layer.id].sensorModel)
+//
+//       let theColor = getColor(pm25Value);
+//       // if (data[layer.id]['Sensor Source'] === 'airu') {
+//       //     theColor = getColor(currentPM25);
+//       // } else {
+//       //   theColor = getColor(currentPM25);
+//       // }
+//
+//       // console.log(layer.id + ' ' + theColor + ' ' + currentPM25)
+//       $(layer._icon).removeClass(epaColors.join(' '))
+//       $(layer._icon).addClass(theColor)
+//     }
+//   });
+// }
 
 
 function updateSensors() {
@@ -1425,6 +1465,33 @@ function updateContour() {
       // alert("error, request failed!");
       console.log("Error when updating the contour: ", err)
   });
+}
+
+
+function displaySensor(aSensorSource, timePassedSinceLastDataValue, aCurrentValue) {
+
+  let theColor = 'noColor';
+  let calculatedColor = getColor(aCurrentValue);
+
+  if (aSensorSource === 'airu' || aSensorSource === 'Purple Air') {
+    if (timePassedSinceLastDataValue <= 10.0) {
+      theColor = calculatedColor;
+    }
+  } else if (aSensorSource === 'DAQ') {
+
+    if (timePassedSinceLastDataValue <= 180.0) {
+      theColor = calculatedColor;
+    }
+  } else if (aSensorSource === 'Mesowest') {
+
+    if (timePassedSinceLastDataValue <= 20.0) {
+      theColor = calculatedColor;
+    }
+  } else {
+    console.log('displaySensor: forgotten a case!!');
+  }
+
+  return theColor;
 }
 
 
@@ -1588,21 +1655,47 @@ function findCorners(ltlg) {
 //   drawChart();
 // }
 
+// from https://stackoverflow.com/questions/3224834/get-difference-between-2-dates-in-javascript --> by Shyam Habarakada
+function dateDiffInSeconds(a, b) {
+  const msPerSec = 1000;
+  // Discard the time and time-zone information.
+  const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+  const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+
+  return Math.floor((utc2 - utc1) / msPerSec);
+}
+
 
 function preprocessDBData(id, sensorData) {
+
+  let sanitizedID = id.split(' ').join('_')
 
   let tags = sensorData["tags"][0];
   let sensorSource = tags["Sensor Source"];
   let sensorModel = tags["Sensor Model"];
 
-  const processedSensorData = sensorData["data"].map((d) => {
+  let processedSensorData = sensorData["data"].map((d) => {
     return {
-      id: id,
+      id: sanitizedID,  // make out of id "Rose Park", "Rose_Park"
       time: new Date(d.time),
       // pm25: d['pm25']
       pm25: conversionPM(d.pm25, sensorSource, sensorModel)
     };
-  })
+  });
+
+  // let processedSensorDataWithNullValues = [];
+  // processedSensorData.forEach(function(item, index) {
+  //   let diffInSec = dateDiffInSeconds(item[time], processedSensorData[index+1][time]);
+  //
+  //   if (diffInSec >= 180) {
+  //     processedSensorDataWithNullValues.push(item)
+  //
+  //
+  //     processedSensorDataWithNullValues.push(item)
+  //   } else {
+  //
+  //   }
+  // });
 
   // .filter((d) => {
   //   return d.pm25 === 0 || !!d.pm25; // forces NaN, null, undefined to be false, all other values to be true
@@ -1610,7 +1703,7 @@ function preprocessDBData(id, sensorData) {
 
   var present = false;
   for (var i = 0; i < lineArray.length; i++) {
-    if (lineArray[i].id === id) {
+    if (lineArray[i].id === sanitizedID) {
       present = true;
       break;
     }
@@ -1618,7 +1711,7 @@ function preprocessDBData(id, sensorData) {
 
   if (!present) {
     console.log('not in there yet');
-    var newLine = {id: id, sensorSource: sensorSource, sensorData: processedSensorData};
+    var newLine = {id: sanitizedID, sensorSource: sensorSource, sensorData: processedSensorData};
 
     // pushes data for this specific line to an array so that there can be multiple lines updated dynamically on Click
     lineArray.push(newLine)
@@ -1950,7 +2043,7 @@ function populateGraph() {
 
   if (d3.select(this._icon).classed('sensor-selected')) {
     // if dot already selected
-    let clickedDotID = this.id
+    let clickedDotID = this.id.split(' ').join('_');
     // d3.select("#line_" + clickedDotID).remove();
     lineArray = lineArray.filter(line => line.id != clickedDotID);
     drawChart();
@@ -2034,14 +2127,16 @@ function conversionPM(pm, sensorSource, sensorModel) {
         // pmv = (-1) * 64.48285 * Math.log(0.97176 - (0.01008 * pm));
         // pmv = 0.7778*pm + 2.6536; // until October 10, 2018
 
-        pmv = (0.432805631 * pm) + 3.316987; // wildfire
+        // pmv = (0.432805631 * pm) + 3.316987; // wildfire
+        pmv = (0.713235898 * pm) + 1.032516; // winter
 
       } else if (model === 'PMS1003') {
         // console.log('PMS1003')
         // pmv = (-1) * 54.22405 * Math.log(0.98138 - (0.00772 * pm));
         // pmv = 0.5431*pm + 1.0607; // until October 10, 2018
-        pmv = (0.418860234 * pm) + 4.630728956; // wildfire
 
+        // pmv = (0.418860234 * pm) + 4.630728956; // wildfire
+        pmv = (0.574723564 * pm) + 2.205862689; //  winter
       } else {
         pmv = pm;
       }
@@ -2052,7 +2147,8 @@ function conversionPM(pm, sensorSource, sensorModel) {
 
       // airu calibration
       // pmv = 0.8582*pm + 1.1644; // until October 10, 2018
-      pmv = (0.448169438 * pm) + 5.885118729; // wildfire
+      // pmv = (0.448169438 * pm) + 5.885118729; // wildfire
+      pmv = (0.460549385 * pm) + 3.343513586; // winter
     }
   }
 

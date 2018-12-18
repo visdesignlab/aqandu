@@ -49,7 +49,7 @@ function generateURL(anEndpoint, route, parameters) { // eslint-disable-line no-
 //       console.log("xhr processing going on");
 //    }
 // }
-// console.log("request sent succesfully");
+// console.log("request sent successfully");
 // });
 // return promiseObj;
 // }
@@ -61,7 +61,7 @@ function getDataFromDB(anURL) { // eslint-disable-line no-unused-vars
 
     request.open(method, anURL, async); // true => request is async
 
-    // If the request returns succesfully, then resolve the promise
+    // If the request returns successfully, then resolve the promise
     request.onreadystatechange = function () {
       if (request.readyState === 4) {
         if (request.status === 200) {
@@ -84,6 +84,6 @@ function getDataFromDB(anURL) { // eslint-disable-line no-unused-vars
     //   reject(e);
     // };
 
-    console.log("request sent succesfully");
+    console.log("request sent successfully");
   });
 }
